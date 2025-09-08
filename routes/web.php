@@ -25,16 +25,24 @@ use App\Http\Controllers\ThingController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\WikidataThingController;
+use App\Http\Controllers\WikidataTypeController;
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('things', ThingController::class);
     Route::resource('properties', PropertyController::class);
     Route::resource('relations', RelationController::class);
     Route::resource('messages', MessageController::class);
+
+    // Wikidata demo routes (protected to reuse app layout/user context)
+    Route::get('/wd/thing/{qid}', [WikidataThingController::class, 'show'])->name('wd.thing.show');
+    Route::get('/wd/{type}', [WikidataTypeController::class, 'index'])->name('wd.type.index');
 });
 
 // Provide a named login route that redirects to Auth0's /login endpoint.
 // This helps Laravel's auth middleware know where to send unauthenticated users.
+/*
 Route::get('/auth/login', function () {
     return redirect('/login');
 })->name('login');
+*/

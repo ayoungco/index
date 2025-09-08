@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // Wikidata service configuration
+    'wikidata' => [
+        'base'   => env('WIKIDATA_BASE', 'https://www.wikidata.org'),
+        'sparql' => env('WIKIDATA_SPARQL', 'https://query.wikidata.org/sparql'),
+        'ua'     => env('WIKIDATA_USER_AGENT', 'IndexApp/0.1 (contact@example.com)'),
+        'ttl'    => (int) env('WIKIDATA_CACHE_TTL', 43200), // 12h
+    ],
+
 ];
