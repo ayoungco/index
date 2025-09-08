@@ -1,7 +1,6 @@
 <div>
-    <x-app-logo-icon class="h-8 w-auto" />
+    <x-app-logo-icon class="w-full" />
 </div>
 <div>
-    <span class="text-lg font-semibold">{{ config('app.name') }}</span>
+    <span class="text-lg font-semibold">{{-- config('app.name') --}}</span>
 </div>
-
