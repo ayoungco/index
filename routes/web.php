@@ -42,6 +42,8 @@ Route::middleware(['auth'])->group(function () {
 // Provide a named login route that redirects to Auth0's /login endpoint.
 // This helps Laravel's auth middleware know where to send unauthenticated users.
 /*
+removed this to avoid conflict with auth0
+
 Route::get('/auth/login', function () {
     return redirect('/login');
 })->name('login');
