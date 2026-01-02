@@ -1,8 +1,8 @@
 [![Laravel Forge Site Deployment Status](https://img.shields.io/endpoint?url=https%3A%2F%2Fforge.laravel.com%2Fsite-badges%2F039056a7-ecc8-412a-944b-111f2b17052e&style=plastic)](https://forge.laravel.com/servers/855626/sites/2635631)
 
-# ![index](public/index-one-h.svg)
+# ![index.ayoung.co](public/index-h.svg)
 
-## index.one
+# index
 
 > A public showcase (and eventual multi-tenant platform) for a **universal index of immutable things**.  
 > Built on Laravel 12, Livewire v3, Alpine.js, and Tailwind CSS.
@@ -27,6 +27,37 @@ _For detailed fields and indexes, see [`docs/index-one-model-manifest.md`](docs/
 | **Message** | Polymorphic comments / audit notes | `morphTo author`, `morphTo subject` |
 
 _Planned but **deferred**_: Tagging, Revision history, Fine‑grained ACL.
+
+## Design
+
+
+
+
+## Elevator Pitch
+
+- Provide a dashboard for everything, at a meaningful URL
+- Useful core information for each as well as hyperlinks to other commonly used services. A table of contents.
+
+## UX
+
+- minimalistic and utilitarian
+- inspiration: GUIs from Deus Ex: Mankind Divided and Cyberpunk 2077
+- triangles and hexagons
+
+## Domains
+
+Substances, ingredients, materials, products
+
+# Features
+
+- an index of all chemical elements and molecules
+- a GPS-aware asset scanner based on QR. Assets are scanned to GPS coordinates, and then to addresses and sub-buildings, rooms, containers. blockchain based tracking?
+- deployable as a self-hosted application - name your universe, name your scope. integrate all of your company systems into a single interface
+- URL design: `https://index.ayoung.co/element/sodium`, `https://index.ayoung.co/organization/Dell`
+
+## Links
+
+- [Ownerly, similar use case]([https://www.instagram.com/useownerly?igsh=N2hpZ2VxaTNpZmIw](https://www.instagram.com/useownerly?igsh=N2hpZ2VxaTNpZmIw)
 
 ## Local Development Setup
 
