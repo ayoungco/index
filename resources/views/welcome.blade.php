@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>index.one</title>
+        <title>index</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -87,7 +87,7 @@
         <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
             <main class="flex max-w-[335px] w-full flex-col-reverse lg:max-w-4xl lg:flex-row">
                     <section class="hero" aria-labelledby="tagline">
-                        <img src="/index-one-h.svg" alt="index.one">
+                        <img src="/index-h.svg" alt="index">
                         <h1 class="tagline my-9">One trusted source.</h1>
                         <p class="desc">
                             <b>index</b> exposes a landing page for every immutable Thing: elements, compounds, standards, etc. and their relationships, at a fixed, semantically meaningful URL.
@@ -99,8 +99,8 @@
 
                 <footer>
                     <div class="foot">
-                        <span>&copy; {{ date('Y') }} index.one</span>
-                        <span>adam@index.one</span>
+                        <span>&copy; {{ date('Y') }} index</span>
+                        <span>adam@index</span>
                     </div>
                 </footer>
             </main>

@@ -8,6 +8,33 @@ use Illuminate\Http\Request;
 class ThingController extends Controller
 {
     /**
+     * Display a public view of a thing by slug.
+     */
+    public function showBySlug(Request $request, string $slug)
+    {
+        $decodedSlug = urldecode($slug);
+
+        $thing = Thing::query()
+            ->where('slug', $decodedSlug)
+            ->first();
+
+        if (! $thing && $decodedSlug !== $slug) {
+            $thing = Thing::query()
+                ->where('slug', $slug)
+                ->first();
+        }
+
+        if (! $thing) {
+            abort(404);
+        }
+
+        return view('things.show', [
+            'thing' => $thing,
+            'requestedSlug' => $decodedSlug,
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()

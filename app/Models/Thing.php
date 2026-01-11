@@ -10,6 +10,10 @@ class Thing extends Model
     /** @use HasFactory<\Database\Factories\ThingFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'slug',
+    ];
+
     /**
      * Get the properties for the thing.
      */

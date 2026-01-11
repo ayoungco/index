@@ -39,6 +39,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wd/{type}', [WikidataTypeController::class, 'index'])->name('wd.type.index');
 });
 
+Route::get('/{slug}', [ThingController::class, 'showBySlug'])
+    ->where('slug', '.*')
+    ->name('things.lookup');
+
 // Provide a named login route that redirects to Auth0's /login endpoint.
 // This helps Laravel's auth middleware know where to send unauthenticated users.
 /*

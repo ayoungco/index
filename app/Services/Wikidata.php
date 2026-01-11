@@ -18,7 +18,7 @@ class Wikidata
         $this->base = rtrim($cfg['base'] ?? 'https://www.wikidata.org', '/');
         $this->sparql = $cfg['sparql'] ?? 'https://query.wikidata.org/sparql';
         $this->headers = [
-            'User-Agent' => $cfg['ua'] ?? 'index/0.1 (adam@index.one)',
+            'User-Agent' => $cfg['ua'] ?? 'index/0.1 (adam@index)',
             'Accept'     => 'application/json',
         ];
         $this->ttl = (int) ($cfg['ttl'] ?? 43200);

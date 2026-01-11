@@ -6,14 +6,14 @@
 
 Exogen (index) - phenotypic behavioral strata across generations of human beings raised in differing chemical environments. lead, asbestos, microplastics, open air nuclear weapons testing fallout, heavy metals.
 
-- index.one - specializing in custom intranets - integrate all of your company systems into a single interface
+- index - specializing in custom intranets - integrate all of your company systems into a single interface
 - all chemical elements and molecules
 - a GPS-aware asset scanner based on QR. Assets are scanned to GPS coordinates, and then to addresses and sub-buildings, rooms, containers.
 - Blockchain tracking of real items (maybe someday)
 - INDEX - INtelligence Dictionary Exchange
 - deployable index
 - name your universe, name your scope
-- index.one page specification, minimal formatting and predictable structure like WikiData but more useful.
+- index page specification, minimal formatting and predictable structure like WikiData but more useful.
 
 ## Data 
 
@@ -25,4 +25,17 @@ Exogen (index) - phenotypic behavioral strata across generations of human beings
 - display information about a coordinate based on what can be retrieved from public APIs such as municipalities 
 - All index instances use the same central database?
 - reference: Stomper Kreeg - NPC - Ascension Database
-- index.one page specification, minimal formatting and predictable structure like WikiData but more useful.
+- index page specification, minimal formatting and predictable structure like WikiData but more useful.
+
+## Features
+
+- [ ] User accounts with OAuth2 login (Google, GitHub, ORCID, etc.) and profile pages.
+
+- [ ] Large, omnipresent search/command bar that emulates the responsiveness of a command line interface. It should return AJAX results for character-by-character input, and allow for fuzzy matching.
+- [ ] Each registered Thing should have a human-readable landing page at a fixed, semantically meaningful URL, with their most likely type as the first segment (e.g., `/element/oxygen`, `/compound/water`, `/standard/ISO-9001`).
+- [ ] QR codes will be generated for each Thing, linking to its landing page. This will allow for easy sharing and referencing in physical documents or presentations.
+- [ ] AWS style "breadcrumbs" at the top of each Thing's page, showing its hierarchical context (e.g., `Home > Element > Oxygen`).
+
+### Installation Experience
+
+- This application should be extremely easy to install and run locally, with a single command to set up the environment, install dependencies, and start the server. Consider using Docker for containerization to simplify the setup process. The goal is to allow users to get the application up and running with minimal effort, ideally in under 5 minutes, so they can explore its features without any hassle.

@@ -10,7 +10,7 @@
 ---
 
 ## Project Vision
-`index.one` aims to provide a human‑readable landing page for **every immutable Thing**—elements, compounds, standards, etc.—and their relationships, at a fixed, semantically meaningful URL.
+`index` aims to provide a human‑readable landing page for **every immutable Thing**—elements, compounds, standards, etc.—and their relationships, at a fixed, semantically meaningful URL.
 
 ---
 
@@ -70,8 +70,8 @@ Substances, ingredients, materials, products
 
 ### 2. Clone & Install
 ```bash
-git clone https://github.com/your-org/index.one.git
-cd index.one
+git clone https://github.com/your-org/index.git
+cd index
 
 # PHP dependencies
 composer install
@@ -152,4 +152,4 @@ Visit **http://localhost:8000**.
 
 ## License
 Code released under the **MIT License** unless noted otherwise.  
-© 2025 index.one contributors
+© 2025 index contributors
