@@ -90,7 +90,7 @@
                         <img src="/index-h.svg" alt="index">
                         <h1 class="tagline my-9">One trusted source.</h1>
                         <p class="desc">
-                            <b>index</b> exposes a landing page for every immutable Thing: elements, compounds, standards, etc. and their relationships, at a fixed, semantically meaningful URL.
+                            <b>index</b> - tag it, scan it, share it. A simple and secure way to catalog and manage inventory and business assets.
                         </p>
                         <div class="actions">
                             <a class="cta" href="/login">Get access</a>
@@ -99,8 +99,8 @@
 
                 <footer>
                     <div class="foot">
-                        <span>&copy; {{ date('Y') }} index</span>
-                        <span>adam@index</span>
+                        <span>&copy; {{ date('Y') }} ayoungco</span>
+                        <span>system@</span>
                     </div>
                 </footer>
             </main>
