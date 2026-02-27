@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\RelationController;
+use App\Http\Controllers\ThingController;
+use App\Http\Controllers\WikidataThingController;
+use App\Http\Controllers\WikidataTypeController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -21,34 +28,30 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/auth.php';
 
-use App\Http\Controllers\ThingController;
-use App\Http\Controllers\PropertyController;
-use App\Http\Controllers\RelationController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\WikidataThingController;
-use App\Http\Controllers\WikidataTypeController;
-
 Route::middleware(['auth'])->group(function () {
     Route::resource('things', ThingController::class);
     Route::resource('properties', PropertyController::class);
     Route::resource('relations', RelationController::class);
     Route::resource('messages', MessageController::class);
 
-    // Wikidata demo routes (protected to reuse app layout/user context)
     Route::get('/wd/thing/{qid}', [WikidataThingController::class, 'show'])->name('wd.thing.show');
     Route::get('/wd/{type}', [WikidataTypeController::class, 'index'])->name('wd.type.index');
 });
 
-Route::get('/{slug}', [ThingController::class, 'showBySlug'])
-    ->where('slug', '.*')
-    ->name('things.lookup');
+Route::middleware(['auth', 'verified.email'])->group(function () {
+    Route::post('/{uuid}/initialize', [ItemController::class, 'storeInitialized'])
+        ->whereUuid('uuid')
+        ->name('items.initialize.store');
 
-// Provide a named login route that redirects to Auth0's /login endpoint.
-// This helps Laravel's auth middleware know where to send unauthenticated users.
-/*
-removed this to avoid conflict with auth0
+    Route::post('/{uuid}/photo', [ItemController::class, 'storePhoto'])
+        ->whereUuid('uuid')
+        ->name('items.photo.store');
+});
 
-Route::get('/auth/login', function () {
-    return redirect('/login');
-})->name('login');
-*/
+Route::get('/{uuid}/print', [ItemController::class, 'printLabel'])
+    ->whereUuid('uuid')
+    ->name('items.print');
+
+Route::get('/{uuid}', [ItemController::class, 'showByUuid'])
+    ->whereUuid('uuid')
+    ->name('items.lookup');

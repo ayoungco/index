@@ -17,7 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         Auth0ServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'verified.email' => \App\Http\Middleware\EnsureVerifiedEmail::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Ensure all exceptions get logged to storage/logs/laravel.log for easier debugging
