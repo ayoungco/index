@@ -4,7 +4,7 @@
 - https://github.com/Vinelab/NeoEloquent
 - https://manage.auth0.com/dashboard/us/interverse/connections/social/create/apple
 
-Exogen (index) - phenotypic behavioral strata across generations of human beings raised in differing chemical environments. lead, asbestos, microplastics, open air nuclear weapons testing fallout, heavy metals.
+Exogen (index) - phenotypic behavioral strata across generations of human beings raised in differing chemical environments. lead, asbestos, microplastics, open air nuclear weapons testing fallout, heavy metals. - this is called the exposome in epidemiology.
 
 - index - specializing in custom intranets - integrate all of your company systems into a single interface
 - all chemical elements and molecules
@@ -29,3 +29,9 @@ Exogen (index) - phenotypic behavioral strata across generations of human beings
 - [ ] Each registered Thing should have a human-readable landing page at a fixed, semantically meaningful URL, with their most likely type as the first segment (e.g., `/element/oxygen`, `/compound/water`, `/standard/ISO-9001`).
 - [ ] QR codes will be generated for each Thing, linking to its landing page. This will allow for easy sharing and referencing in physical documents or presentations.
 - [ ] AWS style "breadcrumbs" at the top of each Thing's page, showing its hierarchical context (e.g., `Home > Element > Oxygen`).
+
+## Inspiration
+
+- interface/UI from Deus Ex: Mankind Divided 
+- Cyberpunk 2077 computer interfaces (Militech)
+- Triangles and hexagons
