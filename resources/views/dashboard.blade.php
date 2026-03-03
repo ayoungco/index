@@ -1,18 +1,30 @@
 <x-layouts.app :title="__('Dashboard')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+        <div class="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <div class="border-b border-neutral-200 px-4 py-3 dark:border-neutral-700">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-700 dark:text-neutral-200">
+                    Existing Objects
+                </h2>
             </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-        </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+
+            @if($things->isEmpty())
+                <div class="px-4 py-6 text-sm text-neutral-600 dark:text-neutral-300">
+                    No objects yet.
+                </div>
+            @else
+                <ul class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                    @foreach($things as $thing)
+                        <li class="px-4 py-3">
+                            <a
+                                href="{{ route('things.show', $thing) }}"
+                                class="text-sm text-neutral-900 hover:underline dark:text-neutral-100"
+                            >
+                                {{ $thing->display_name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
     </div>
 </x-layouts.app>

@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Providers\AppServiceProvider;
 use App\Providers\Auth0ServiceProvider;
+use App\Http\Middleware\EnsureEmailIsVerifiedForActions;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

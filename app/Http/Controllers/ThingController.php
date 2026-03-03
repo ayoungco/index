@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Thing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ThingController extends Controller
 {
@@ -28,10 +31,11 @@ class ThingController extends Controller
             abort(404);
         }
 
-        return view('things.show', [
-            'thing' => $thing,
-            'requestedSlug' => $decodedSlug,
-        ]);
+        if ($request->user()) {
+            $this->startOrRefreshActiveScan($request, $thing);
+        }
+
+        return $this->renderThingPage($request, $thing, ['requestedSlug' => $decodedSlug]);
     }
 
     /**
@@ -68,7 +72,42 @@ class ThingController extends Controller
      */
     public function show(Thing $thing)
     {
-        return view('things.show', compact('thing'));
+        return $this->renderThingPage(request(), $thing);
+    }
+
+    public function storeScanPhoto(Request $request, Thing $thing)
+    {
+        $activeScan = $request->session()->get('active_thing_scan');
+
+        if (! is_array($activeScan) || (int) ($activeScan['thing_id'] ?? 0) !== (int) $thing->id) {
+            return redirect()
+                ->route('things.show', $thing)
+                ->with('status', 'No active scan session found for this Thing.');
+        }
+
+        $validated = $request->validate([
+            'photo' => ['required', 'image', 'max:10240'],
+        ]);
+
+        $storedPath = $validated['photo']->store('thing-scans', 'public');
+
+        $this->appendThingSessionHistory($request, $thing->id, [
+            'type' => 'scan.photo_added',
+            'title' => 'QR photo captured',
+            'description' => 'A photo was attached right after scanning this QR.',
+            'occurred_at' => now()->toIso8601String(),
+            'scan_id' => $activeScan['scan_id'] ?? null,
+            'photo_url' => Storage::disk('public')->url($storedPath),
+            'photo_path' => $storedPath,
+        ]);
+
+        $activeScan['photo_captured'] = true;
+        $activeScan['photo_captured_at'] = now()->toIso8601String();
+        $request->session()->put('active_thing_scan', $activeScan);
+
+        return redirect()
+            ->route('things.show', $thing)
+            ->with('status', 'Photo uploaded to this Thing timeline.');
     }
 
     /**
@@ -98,5 +137,68 @@ class ThingController extends Controller
     {
         $thing->delete();
         return redirect()->route('things.index');
+    }
+
+    protected function renderThingPage(Request $request, Thing $thing, array $extra = [])
+    {
+        $sessionHistory = $request->session()->get("thing_history.{$thing->id}", []);
+        $activeScan = $request->session()->get('active_thing_scan');
+        $hasActiveScan = is_array($activeScan) && (int) ($activeScan['thing_id'] ?? 0) === (int) $thing->id;
+        $needsScanPhoto = $request->user() && $hasActiveScan && ! (bool) ($activeScan['photo_captured'] ?? false);
+
+        return view('things.show', array_merge($extra, [
+            'thing' => $thing,
+            'status' => $request->session()->get('status'),
+            'timeline' => $thing->timeline(is_array($sessionHistory) ? $sessionHistory : []),
+            'needsScanPhoto' => $needsScanPhoto,
+        ]));
+    }
+
+    protected function startOrRefreshActiveScan(Request $request, Thing $thing): void
+    {
+        $current = $request->session()->get('active_thing_scan');
+        $scanChanged = ! is_array($current) || (int) ($current['thing_id'] ?? 0) !== (int) $thing->id;
+
+        if ($scanChanged) {
+            $current = [
+                'scan_id' => (string) Str::uuid(),
+                'thing_id' => $thing->id,
+                'slug' => $thing->slug,
+                'scanned_at' => now()->toIso8601String(),
+                'photo_captured' => false,
+            ];
+
+            $this->appendThingSessionHistory($request, $thing->id, [
+                'type' => 'scan.detected',
+                'title' => 'QR scanned',
+                'description' => 'This Thing was opened from a scanned QR.',
+                'occurred_at' => $current['scanned_at'],
+                'scan_id' => $current['scan_id'],
+            ]);
+        } else {
+            $current['last_seen_at'] = now()->toIso8601String();
+        }
+
+        $request->session()->put('active_thing_scan', $current);
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    protected function appendThingSessionHistory(Request $request, int $thingId, array $entry): void
+    {
+        $key = "thing_history.{$thingId}";
+        $history = $request->session()->get($key, []);
+        $history = is_array($history) ? $history : [];
+        $history[] = $entry;
+
+        usort($history, function (array $left, array $right) {
+            $leftAt = Carbon::parse($left['occurred_at'] ?? now())->getTimestamp();
+            $rightAt = Carbon::parse($right['occurred_at'] ?? now())->getTimestamp();
+
+            return $leftAt <=> $rightAt;
+        });
+
+        $request->session()->put($key, array_slice($history, -50));
     }
 }
