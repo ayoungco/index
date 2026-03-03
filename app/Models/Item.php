@@ -25,6 +25,6 @@ class Item extends Model
 
     public function events(): HasMany
     {
-        return $this->hasMany(ItemEvent::class, 'scanned_item_id')->latest();
+        return $this->hasMany(ItemEvent::class)->latest();
     }
 }

@@ -1,12 +1,12 @@
 <?php
 
-use App\Models\ScannedItem;
+use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
-test('guest sees login prompt for unknown scanned uuid', function () {
+test('guest sees login prompt for unknown uuid', function () {
     $uuid = (string) Str::uuid();
 
     $response = $this->get('/'.$uuid);
@@ -17,10 +17,10 @@ test('guest sees login prompt for unknown scanned uuid', function () {
 });
 
 test('guest sees condensed timeline without inline images', function () {
-    $item = ScannedItem::factory()->create();
+    $item = Item::factory()->create();
     $item->events()->create([
         'user_id' => $item->user_id,
-        'image_path' => 'scanned-items/'.$item->uuid.'/photo.jpg',
+        'image_path' => 'items/'.$item->uuid.'/photo.jpg',
         'is_qr_verified' => true,
     ]);
 

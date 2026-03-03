@@ -8,7 +8,7 @@
         @if(!empty($instances) && count($instances))
             <p class="mb-2"><strong>Instance of:</strong>
                 @foreach($instances as $i)
-                    <a class="underline" href="{{ url('/wd/thing/'.$i) }}">{{ $i }}</a>@if(!$loop->last),@endif
+                    <a class="underline" href="{{ url('/wd/item/'.$i) }}">{{ $i }}</a>@if(!$loop->last),@endif
                 @endforeach
             </p>
         @endif
@@ -19,4 +19,3 @@
         </details>
     </div>
 </x-layouts.app>
-

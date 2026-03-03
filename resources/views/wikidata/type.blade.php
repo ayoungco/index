@@ -4,7 +4,7 @@
         <ul class="list-disc ml-5 mt-3">
             @foreach($items as $it)
                 <li>
-                    <a class="underline" href="{{ url('/wd/thing/'.$it['qid']) }}">
+                    <a class="underline" href="{{ url('/wd/item/'.$it['qid']) }}">
                         {{ $it['label'] ?? $it['qid'] }} ({{ $it['qid'] }})
                     </a>
                 </li>
@@ -12,4 +12,3 @@
         </ul>
     </div>
 </x-layouts.app>
-

@@ -12,13 +12,27 @@ class ImageCompressionService
     public function compressAndStore(UploadedFile $file, string $uuid): string
     {
         $disk = Storage::disk('public');
-        $directory = 'scanned-items/'.$uuid;
+        $directory = 'items/'.$uuid;
         $disk->makeDirectory($directory);
 
         $filename = Str::uuid().'.jpg';
         $relativePath = $directory.'/'.$filename;
 
-        // Prefer Imagick for reliability; fall back to GD if needed.
+        if (class_exists(\Intervention\Image\ImageManager::class)) {
+            $manager = $this->buildInterventionManager();
+
+            if ($manager) {
+                $image = $manager->read($file->getRealPath());
+                $image->scaleDown(width: 1080);
+                $encoded = $image->toJpeg(75);
+
+                $disk->put($relativePath, (string) $encoded);
+
+                return $relativePath;
+            }
+        }
+
+        // Fallback to native extensions when Intervention Image is unavailable.
         if (class_exists(\Imagick::class)) {
             $image = new \Imagick($file->getRealPath());
             $image->setImageOrientation(\Imagick::ORIENTATION_TOPLEFT);
@@ -73,5 +87,22 @@ class ImageCompressionService
         $disk->put($relativePath, $jpegData);
 
         return $relativePath;
+    }
+
+    private function buildInterventionManager(): ?\Intervention\Image\ImageManager
+    {
+        if (! class_exists(\Intervention\Image\ImageManager::class)) {
+            return null;
+        }
+
+        if (class_exists(\Intervention\Image\Drivers\Imagick\Driver::class)) {
+            return new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Imagick\Driver);
+        }
+
+        if (class_exists(\Intervention\Image\Drivers\Gd\Driver::class)) {
+            return new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
+        }
+
+        return null;
     }
 }

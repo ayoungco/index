@@ -7,19 +7,19 @@
                 </h2>
             </div>
 
-            @if($things->isEmpty())
+            @if($items->isEmpty())
                 <div class="px-4 py-6 text-sm text-neutral-600 dark:text-neutral-300">
                     No objects yet.
                 </div>
             @else
                 <ul class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                    @foreach($things as $thing)
+                    @foreach($items as $item)
                         <li class="px-4 py-3">
                             <a
-                                href="{{ route('things.show', $thing) }}"
+                                href="{{ route('items.show', ['uuid' => $item->uuid]) }}"
                                 class="text-sm text-neutral-900 hover:underline dark:text-neutral-100"
                             >
-                                {{ $thing->display_name }}
+                                {{ $item->name }}
                             </a>
                         </li>
                     @endforeach

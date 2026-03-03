@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('item_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('scanned_item_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('item_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('image_path')->nullable();
             $table->boolean('is_qr_verified')->default(false);
             $table->timestamps();
 
-            $table->index(['scanned_item_id', 'created_at']);
+            $table->index(['item_id', 'created_at']);
         });
     }
 

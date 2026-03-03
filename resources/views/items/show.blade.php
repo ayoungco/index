@@ -12,7 +12,7 @@
 
                 @if ($isAuthenticated)
                     <a
-                        href="{{ route('scanned-items.print', ['uuid' => $item->uuid]) }}"
+                        href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
                         class="border border-emerald-400 px-4 py-2 text-emerald-300 hover:bg-emerald-400 hover:text-black"
                     >
                         Print Label
@@ -30,7 +30,7 @@
                     <p class="mt-1 text-zinc-300">Uploads are compressed server-side and checked for matching QR code.</p>
 
                     @if ($canPost)
-                        <form method="POST" action="{{ route('scanned-items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 sm:flex sm:items-end sm:gap-4">
+                        <form method="POST" action="{{ route('items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 sm:flex sm:items-end sm:gap-4">
                             @csrf
                             <label class="grid gap-1">
                                 <span class="text-emerald-300">Photo</span>

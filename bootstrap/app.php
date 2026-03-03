@@ -1,11 +1,10 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\Auth0ServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Providers\AppServiceProvider;
-use App\Providers\Auth0ServiceProvider;
-use App\Http\Middleware\EnsureEmailIsVerifiedForActions;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
+            'auth0.verified' => \App\Http\Middleware\EnsureVerifiedEmail::class,
             'verified.email' => \App\Http\Middleware\EnsureVerifiedEmail::class,
         ]);
     })

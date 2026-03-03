@@ -11,7 +11,7 @@
             @if ($canInitialize)
                 <p class="mt-4 text-zinc-200">Initialize this object now.</p>
 
-                <form method="POST" action="{{ route('scanned-items.initialize', ['uuid' => $uuid]) }}" class="mt-4 grid gap-4">
+                <form method="POST" action="{{ route('items.initialize', ['uuid' => $uuid]) }}" class="mt-4 grid gap-4">
                     @csrf
                     <label class="grid gap-1">
                         <span class="text-emerald-300">Name</span>

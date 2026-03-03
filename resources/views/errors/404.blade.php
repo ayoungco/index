@@ -19,14 +19,14 @@
 
             <header class="space-y-2">
                 <p class="text-xs uppercase tracking-[0.2em] text-zinc-400">404</p>
-                <h1 class="text-3xl font-semibold">We couldn't find that Thing.</h1>
+                <h1 class="text-3xl font-semibold">We couldn't find that Item.</h1>
                 <p class="text-sm text-zinc-500">
                     Tried to resolve: <span class="font-medium text-zinc-700">{{ $requestedPath }}</span>
                 </p>
             </header>
 
             <section class="rounded-lg border border-zinc-200 bg-zinc-50/60 p-6 text-sm text-zinc-600">
-                <p>Log in or register to create this Thing in index.</p>
+                <p>Log in or register to create this Item in index.</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                     <a class="rounded-full border border-zinc-200 bg-white px-4 py-2 font-semibold text-zinc-700 hover:border-zinc-300" href="{{ $loginUrl }}">Log in</a>
                     <a class="rounded-full bg-zinc-900 px-4 py-2 font-semibold text-white hover:bg-zinc-800" href="{{ $registerUrl }}">Register</a>

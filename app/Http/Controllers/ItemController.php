@@ -4,81 +4,120 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\ItemEvent;
-use App\Services\ItemImageProcessor;
+use App\Services\ImageCompressionService;
+use App\Services\QrCodeRenderService;
+use App\Services\QrVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ItemController extends Controller
 {
-    public function showByUuid(Request $request, string $uuid): View|RedirectResponse
+    public function __construct(
+        private readonly ImageCompressionService $imageCompression,
+        private readonly QrVerificationService $qrVerification,
+        private readonly QrCodeRenderService $qrRenderer,
+    ) {}
+
+    public function show(Request $request, string $uuid): View
     {
-        $item = Item::query()->with(['creator', 'events.user'])->where('uuid', $uuid)->first();
+        $user = $request->user();
+        $item = Item::query()
+            ->where('uuid', $uuid)
+            ->with(['creator', 'events.author'])
+            ->first();
 
         if (! $item) {
-            if (! $request->user()) {
-                return view('items.missing-guest', compact('uuid'));
+            if (! $user) {
+                return view('items.missing-guest', [
+                    'uuid' => $uuid,
+                ]);
             }
 
-            if (! $request->user()->email_verified_at) {
-                return view('items.missing-unverified', compact('uuid'));
-            }
-
-            return view('items.initialize', compact('uuid'));
+            return view('items.missing', [
+                'uuid' => $uuid,
+                'canInitialize' => (bool) $user->email_verified_at,
+            ]);
         }
 
-        if ($request->user()) {
-            return view('items.show-auth', compact('item'));
+        if (! $user) {
+            return view('items.public', [
+                'item' => $item,
+            ]);
         }
 
-        return view('items.show-guest', compact('item'));
+        return view('items.show', [
+            'item' => $item,
+            'isAuthenticated' => true,
+            'canPost' => (bool) $user->email_verified_at,
+        ]);
     }
 
-    public function storeInitialized(Request $request, string $uuid): RedirectResponse
+    public function initialize(Request $request, string $uuid): RedirectResponse
     {
+        $item = Item::query()->where('uuid', $uuid)->first();
+
+        if ($item) {
+            return redirect()->route('items.show', ['uuid' => $uuid]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:3000'],
+            'description' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        Item::query()->updateOrCreate(
-            ['uuid' => $uuid],
-            [
-                'name' => $validated['name'],
-                'description' => $validated['description'] ?? null,
-                'user_id' => $request->user()->id,
-            ]
-        );
+        Item::query()->create([
+            'uuid' => $uuid,
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'user_id' => $request->user()->id,
+        ]);
 
-        return redirect()->route('items.lookup', $uuid)->with('status', 'Object initialized successfully.');
+        return redirect()
+            ->route('items.show', ['uuid' => $uuid])
+            ->with('status', 'Object initialized.');
     }
 
-    public function storePhoto(Request $request, string $uuid, ItemImageProcessor $processor): RedirectResponse
+    public function addPhoto(Request $request, string $uuid): RedirectResponse
     {
-        $item = Item::query()->where('uuid', $uuid)->firstOrFail();
+        $item = Item::query()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
 
         $validated = $request->validate([
-            'photo' => ['required', 'image', 'max:12288'],
+            'photo' => ['required', 'image', 'max:15360'],
         ]);
 
-        $result = $processor->process($validated['photo'], $uuid);
+        $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+        $absolutePath = storage_path('app/public/'.$relativePath);
+        $isQrVerified = $this->qrVerification->verifyImageContainsUuid($absolutePath, $uuid);
 
         ItemEvent::query()->create([
-            'scanned_item_id' => $item->id,
+            'item_id' => $item->id,
             'user_id' => $request->user()->id,
-            'image_path' => $result['path'],
-            'is_qr_verified' => $result['verified'],
+            'image_path' => $relativePath,
+            'is_qr_verified' => $isQrVerified,
         ]);
 
-        return back()->with('status', $result['verified']
-            ? 'Photo added and QR match verified.'
-            : 'Photo added, but QR could not be verified and was flagged for review.');
+        $status = $isQrVerified
+            ? 'Photo added and QR verified.'
+            : 'Photo added, but QR could not be verified. Flagged for review.';
+
+        return redirect()
+            ->route('items.show', ['uuid' => $uuid])
+            ->with('status', $status);
     }
 
-    public function printLabel(string $uuid): View
+    public function print(Request $request, string $uuid): View
     {
-        $item = Item::query()->where('uuid', $uuid)->firstOrFail();
+        $item = Item::query()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
 
-        return view('items.print', compact('item'));
+        return view('items.print', [
+            'item' => $item,
+            'qrSvg' => $this->qrRenderer->renderSvg($item->uuid, 280),
+            'isAuthenticated' => (bool) $request->user(),
+        ]);
     }
 }

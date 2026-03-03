@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class ScannedItemSeeder extends Seeder
+class ItemSeeder extends Seeder
 {
     public function run(): void
     {
@@ -19,7 +19,7 @@ class ScannedItemSeeder extends Seeder
             Item::query()->create([
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Seeded Item '.$index,
-                'description' => 'Dummy scanned object for testing QR lookup flows.',
+                'description' => 'Dummy object for testing QR lookup flows.',
                 'user_id' => $user->id,
             ]);
         }

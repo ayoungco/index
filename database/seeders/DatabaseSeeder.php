@@ -18,6 +18,6 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        $this->call(ScannedItemSeeder::class);
+        $this->call(ItemSeeder::class);
     }
 }

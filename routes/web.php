@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ItemController;
+use App\Models\Item;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -8,11 +10,11 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    $things = Thing::query()
+    $items = Item::query()
         ->latest('created_at')
         ->get();
 
-    return view('dashboard', compact('things'));
+    return view('dashboard', compact('items'));
 })
     ->middleware(['auth'])
     ->name('dashboard');
@@ -28,47 +30,22 @@ Route::middleware(['auth'])->group(function () {
 require __DIR__.'/auth.php';
 
 Route::middleware(['auth'])->group(function () {
-    Route::resource('things', ThingController::class);
-    Route::post('things/{thing}/scan-photo', [ThingController::class, 'storeScanPhoto'])->name('things.scan-photo');
-    Route::resource('properties', PropertyController::class);
-    Route::resource('relations', RelationController::class);
-    Route::resource('messages', MessageController::class);
-
-    Route::get('/wd/thing/{qid}', [WikidataThingController::class, 'show'])->name('wd.thing.show');
-    Route::get('/wd/{type}', [WikidataTypeController::class, 'index'])->name('wd.type.index');
-    Route::get('/{uuid}/print', [ScannedItemController::class, 'print'])
+    Route::get('/{uuid}/print', [ItemController::class, 'print'])
         ->whereUuid('uuid')
-        ->name('scanned-items.print');
+        ->middleware(['auth0.authenticate'])
+        ->name('items.print');
 });
 
-Route::post('/{uuid}/initialize', [ScannedItemController::class, 'initialize'])
+Route::post('/{uuid}/initialize', [ItemController::class, 'initialize'])
     ->whereUuid('uuid')
-    ->middleware(['auth', 'auth0.verified'])
-    ->name('scanned-items.initialize');
+    ->middleware(['auth0.authenticate', 'auth0.verified'])
+    ->name('items.initialize');
 
-Route::post('/{uuid}/events', [ScannedItemController::class, 'addPhoto'])
+Route::post('/{uuid}/events', [ItemController::class, 'addPhoto'])
     ->whereUuid('uuid')
-    ->middleware(['auth', 'auth0.verified'])
-    ->name('scanned-items.events.store');
+    ->middleware(['auth0.authenticate', 'auth0.verified'])
+    ->name('items.events.store');
 
-Route::get('/{uuid}', [ScannedItemController::class, 'show'])
+Route::get('/{uuid}', [ItemController::class, 'show'])
     ->whereUuid('uuid')
-    ->name('scanned-items.show');
-
-Route::middleware(['auth', 'verified.email'])->group(function () {
-    Route::post('/{uuid}/initialize', [ItemController::class, 'storeInitialized'])
-        ->whereUuid('uuid')
-        ->name('items.initialize.store');
-
-    Route::post('/{uuid}/photo', [ItemController::class, 'storePhoto'])
-        ->whereUuid('uuid')
-        ->name('items.photo.store');
-});
-
-Route::get('/{uuid}/print', [ItemController::class, 'printLabel'])
-    ->whereUuid('uuid')
-    ->name('items.print');
-
-Route::get('/{uuid}', [ItemController::class, 'showByUuid'])
-    ->whereUuid('uuid')
-    ->name('items.lookup');
+    ->name('items.show');

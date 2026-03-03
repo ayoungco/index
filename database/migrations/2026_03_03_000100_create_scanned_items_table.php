@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,14 +9,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('scanned_items', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid')->unique();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
-        });
+        // Deprecated by 2026_01_01_000100_create_items_table.php.
+        // Keep this migration file for history, but no-op.
     }
 
     /**
@@ -26,6 +18,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('scanned_items');
+        // No-op.
     }
 };

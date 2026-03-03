@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\ScannedItem;
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,7 +19,7 @@ class ItemEventFactory extends Factory
     public function definition(): array
     {
         return [
-            'scanned_item_id' => ScannedItem::factory(),
+            'item_id' => Item::factory(),
             'user_id' => User::factory(),
             'image_path' => null,
             'is_qr_verified' => fake()->boolean(60),
