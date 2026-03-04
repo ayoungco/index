@@ -1,6 +1,4 @@
-<div>
-    <x-app-logo-icon class="w-full" />
-</div>
-<div>
-    <span class="text-lg font-semibold">{{-- config('app.name') --}}</span>
+<div class="flex items-center gap-2">
+    <x-app-logo-icon class="h-7 w-auto" />
+    <span class="text-sm font-semibold uppercase tracking-[0.16em]">Index</span>
 </div>

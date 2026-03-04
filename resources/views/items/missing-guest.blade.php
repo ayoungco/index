@@ -1,30 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uninitialized Object</title>
-    <style>
-        body { background: #000; color: #fff; font-family: "Courier New", Courier, monospace; margin: 0; padding: 16px; }
-        .panel { max-width: 840px; margin: 0 auto; border: 1px solid #34d399; padding: 16px; }
-        .uuid { color: #34d399; }
-        .title { margin: 8px 0 0; font-size: 24px; }
-        .copy { margin-top: 16px; color: #d4d4d8; }
-        .btn { display: inline-block; margin-top: 16px; border: 1px solid #34d399; color: #6ee7b7; padding: 10px 14px; text-decoration: none; }
-        .btn:hover { background: #34d399; color: #000; }
-    </style>
+    @include('partials.head')
 </head>
 <body>
-    <section class="panel">
-        <p class="uuid">[SCAN TARGET: {{ $uuid }}]</p>
-        <h1 class="title">Object Not Initialized</h1>
-        <p class="copy">This UUID is unclaimed. Log in to initialize this object.</p>
-        <a
-            href="/login"
-            class="btn"
-        >
-            Login With Auth0
-        </a>
-    </section>
+    <main class="terminal-shell text-sm">
+        <div class="mb-3 flex justify-end">
+            <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent text-xs">Switch to Dark</button>
+        </div>
+
+        <section class="terminal-panel max-w-3xl">
+            <p class="terminal-accent">[SCAN TARGET: {{ $uuid }}]</p>
+            <h1 class="terminal-title mt-2">Object Not Initialized</h1>
+            <p class="terminal-muted mt-3">This UUID is unclaimed. Log in to initialize this object.</p>
+            <a href="/login" class="terminal-btn terminal-btn-accent mt-4">Login With Auth0</a>
+        </section>
+    </main>
 </body>
 </html>

@@ -9,7 +9,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'IBM Plex Mono', 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -38,12 +38,112 @@
 
 @layer base {
 
+    :root {
+        color-scheme: light;
+        --terminal-bg: #f8faf8;
+        --terminal-panel: #ffffff;
+        --terminal-ink: #0f1720;
+        --terminal-muted: #4b5563;
+        --terminal-line: #0f1720;
+        --terminal-accent: #0f7a40;
+        --terminal-accent-soft: #d1fae5;
+    }
+
+    .dark {
+        color-scheme: dark;
+        --terminal-bg: #030606;
+        --terminal-panel: #040a07;
+        --terminal-ink: #e5f4ea;
+        --terminal-muted: #9fb1a3;
+        --terminal-line: #24c16f;
+        --terminal-accent: #24c16f;
+        --terminal-accent-soft: #072514;
+    }
+
+    html,
+    body {
+        @apply min-h-screen;
+        background: var(--terminal-bg);
+        color: var(--terminal-ink);
+        font-family: var(--font-sans);
+    }
+
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+@layer components {
+    .terminal-shell {
+        @apply mx-auto w-full max-w-5xl p-4 sm:p-6;
+    }
+
+    .terminal-panel {
+        @apply border p-4 sm:p-6;
+        border-color: var(--terminal-line);
+        background: var(--terminal-panel);
+    }
+
+    .terminal-divider {
+        border-color: color-mix(in srgb, var(--terminal-line) 45%, transparent);
+    }
+
+    .terminal-title {
+        @apply text-xl font-bold sm:text-2xl;
+        color: var(--terminal-ink);
+    }
+
+    .terminal-muted {
+        color: var(--terminal-muted);
+    }
+
+    .terminal-accent {
+        color: var(--terminal-accent);
+    }
+
+    .terminal-btn {
+        @apply inline-flex items-center justify-center border px-3 py-2 text-sm font-semibold transition;
+        border-color: var(--terminal-line);
+        color: var(--terminal-ink);
+        background: transparent;
+    }
+
+    .terminal-btn:hover {
+        background: var(--terminal-accent-soft);
+    }
+
+    .terminal-btn-accent {
+        border-color: var(--terminal-accent);
+        color: var(--terminal-accent);
+    }
+
+    .terminal-btn-accent:hover {
+        background: var(--terminal-accent);
+        color: #04110a;
+    }
+
+    .terminal-field {
+        @apply w-full border px-3 py-2 text-sm;
+        border-color: var(--terminal-line);
+        background: var(--terminal-panel);
+        color: var(--terminal-ink);
+    }
+
+    .terminal-field:focus {
+        @apply outline-none;
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+    }
+
+    .logo-adaptive {
+        filter: none;
+    }
+
+    .dark .logo-adaptive {
+        filter: invert(1);
     }
 }
 
