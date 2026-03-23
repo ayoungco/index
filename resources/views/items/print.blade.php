@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Label - {{ $item->uuid }}</title>
+    <title>{{ $siteSettings['label_name'] }} - {{ $item->uuid }}</title>
     <style>
         body {
             margin: 0;
@@ -108,18 +108,19 @@
     <div class="label">
         <div class="top">
             <div class="logo-wrap">
-                <img src="{{ asset('index-triangle-red.png') }}" alt="Index triangle logo" class="logo">
+                <img src="{{ app(\App\Support\SiteSettings::class)->logoUrl() }}" alt="{{ config('app.name') }} logo" class="logo">
             </div>
             <div class="qr">{!! $qrSvg !!}</div>
         </div>
 
         <div class="meta">
             <h1>{{ $item->name }}</h1>
+            <div class="uuid">{{ $siteSettings['label_name'] }}</div>
             <div class="uuid">UUID: {{ $item->uuid }}</div>
         </div>
 
         <div class="flavor">
-            {{ $item->description ?: 'One trusted source. Scan to access the canonical item record and timeline.' }}
+            {{ $item->description ?: $siteSettings['label_tagline'] }}
         </div>
     </div>
 </body>

@@ -1,5 +1,11 @@
 <?php
 
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
+beforeEach(function () {
+    installApplication();
+});
+
 it('returns a successful response', function () {
     $response = $this->get('/');
 

@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Auth0\Laravel\Events\AuthenticationFailed;
 
@@ -14,16 +16,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SiteSettings::class);
     }
 
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(SiteSettings $siteSettings): void
     {
+        $settings = $siteSettings->all();
+
+        config([
+            'app.name' => $settings['site_name'],
+            'app.url' => $settings['site_url'],
+        ]);
+
+        View::share('siteSettings', $settings);
+
         // Force HTTPS locally if APP_URL uses https:// to keep cookie/session consistent
         $appUrl = config('app.url');
+        if (is_string($appUrl) && $appUrl !== '') {
+            URL::forceRootUrl($appUrl);
+        }
+
         if (is_string($appUrl) && str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
         }

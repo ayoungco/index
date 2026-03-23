@@ -7,6 +7,10 @@ use Livewire\Volt\Volt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('reset password link screen can be rendered', function () {
     $response = $this->get('/forgot-password');
 

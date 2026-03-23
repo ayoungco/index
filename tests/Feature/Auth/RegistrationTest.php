@@ -4,6 +4,10 @@ use Livewire\Volt\Volt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
 
