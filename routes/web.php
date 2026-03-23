@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\ItemController;
 use App\Models\Item;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
+
+
+Route::get('install', [InstallerController::class, 'show'])->name('install.show');
+Route::post('install', [InstallerController::class, 'store'])->name('install.store');
 
 Route::get('/', function () {
     return view('welcome');

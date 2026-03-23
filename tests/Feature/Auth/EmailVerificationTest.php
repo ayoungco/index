@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\URL;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();
 

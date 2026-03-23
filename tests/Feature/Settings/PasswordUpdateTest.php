@@ -6,6 +6,10 @@ use Livewire\Volt\Volt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('password can be updated', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),

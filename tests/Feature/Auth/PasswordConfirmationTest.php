@@ -5,6 +5,10 @@ use Livewire\Volt\Volt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('confirm password screen can be rendered', function () {
     $user = User::factory()->create();
 

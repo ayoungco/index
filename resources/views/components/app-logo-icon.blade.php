@@ -1,1 +1,1 @@
-<img src="{{ asset('index-h.svg') }}" alt="{{ config('app.name') }}" {{ $attributes->class('logo-adaptive') }}>
+<img src="{{ app(\App\Support\SiteSettings::class)->logoUrl() }}" alt="{{ config('app.name') }}" {{ $attributes->class('logo-adaptive') }}>

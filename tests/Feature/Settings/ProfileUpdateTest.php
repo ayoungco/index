@@ -5,6 +5,10 @@ use Livewire\Volt\Volt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('profile page is displayed', function () {
     $this->actingAs($user = User::factory()->create());
 

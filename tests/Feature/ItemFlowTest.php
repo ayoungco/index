@@ -6,6 +6,10 @@ use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    installApplication();
+});
+
 test('guest sees login prompt for unknown uuid', function () {
     $uuid = (string) Str::uuid();
 

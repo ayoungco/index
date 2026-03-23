@@ -45,3 +45,16 @@ function something()
 {
     // ..
 }
+
+
+function installApplication(array $overrides = []): void
+{
+    app(\App\Support\SiteSettings::class)->install(array_merge([
+        'site_name' => 'Index',
+        'site_url' => 'https://index.test',
+        'scanner_title' => 'One trusted source.',
+        'scanner_tagline' => 'Scan an item UUID, post photos from camera, and keep the canonical timeline in one place.',
+        'label_name' => 'Asset Label',
+        'label_tagline' => 'Scan to access the canonical item record and timeline.',
+    ], $overrides));
+}
