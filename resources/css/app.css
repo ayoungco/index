@@ -23,16 +23,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    --color-accent: #ff4f00;
+    --color-accent-content: #ff4f00;
+    --color-accent-foreground: #ffffff;
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #ff4f00;
+        --color-accent-content: #ff4f00;
+        --color-accent-foreground: #000000;
     }
 }
 
@@ -40,24 +40,28 @@
 
     :root {
         color-scheme: light;
-        --terminal-bg: #f8faf8;
+        --terminal-bg: #ffffff;
         --terminal-panel: #ffffff;
-        --terminal-ink: #0f1720;
-        --terminal-muted: #4b5563;
-        --terminal-line: #0f1720;
-        --terminal-accent: #0f7a40;
-        --terminal-accent-soft: #d1fae5;
+        --terminal-ink: #000000;
+        --terminal-muted: #262626;
+        --terminal-line: #000000;
+        --terminal-accent: #ff4f00;
+        --terminal-accent-soft: #fff0ea;
+        --terminal-critical: #d90429;
+        --terminal-critical-soft: #ffe8ec;
     }
 
     .dark {
         color-scheme: dark;
-        --terminal-bg: #030606;
-        --terminal-panel: #040a07;
-        --terminal-ink: #e5f4ea;
-        --terminal-muted: #9fb1a3;
-        --terminal-line: #24c16f;
-        --terminal-accent: #24c16f;
-        --terminal-accent-soft: #072514;
+        --terminal-bg: #000000;
+        --terminal-panel: #000000;
+        --terminal-ink: #ffffff;
+        --terminal-muted: #d4d4d4;
+        --terminal-line: #ffffff;
+        --terminal-accent: #ff4f00;
+        --terminal-accent-soft: #2c1308;
+        --terminal-critical: #ff2d55;
+        --terminal-critical-soft: #2b0a11;
     }
 
     html,
@@ -73,7 +77,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--terminal-line);
     }
 }
 
@@ -89,7 +93,7 @@
     }
 
     .terminal-divider {
-        border-color: color-mix(in srgb, var(--terminal-line) 45%, transparent);
+        border-color: color-mix(in srgb, var(--terminal-line) 65%, transparent);
     }
 
     .terminal-title {
@@ -123,7 +127,7 @@
 
     .terminal-btn-accent:hover {
         background: var(--terminal-accent);
-        color: #04110a;
+        color: #ffffff;
     }
 
     .terminal-field {
@@ -136,6 +140,53 @@
     .terminal-field:focus {
         @apply outline-none;
         box-shadow: 0 0 0 2px color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+    }
+
+    .terminal-notice {
+        @apply border p-3;
+        border-color: var(--terminal-accent);
+        background: var(--terminal-accent-soft);
+        color: var(--terminal-ink);
+    }
+
+    .terminal-notice-critical {
+        @apply border p-3;
+        border-color: var(--terminal-critical);
+        background: var(--terminal-critical-soft);
+        color: var(--terminal-critical);
+    }
+
+    .terminal-chip {
+        @apply border px-2 py-0.5 text-xs;
+    }
+
+    .terminal-chip-highlight {
+        border-color: var(--terminal-accent);
+        color: var(--terminal-accent);
+    }
+
+    .terminal-chip-critical {
+        border-color: var(--terminal-critical);
+        color: var(--terminal-critical);
+    }
+
+    .terminal-label-grid {
+        @apply grid grid-cols-2 gap-3;
+    }
+
+    .terminal-label-square {
+        @apply flex aspect-square items-center justify-center border p-2;
+        border-color: var(--terminal-line);
+        background: var(--terminal-panel);
+    }
+
+    .terminal-label-square svg,
+    .terminal-label-square img {
+        @apply h-full w-full object-contain;
+    }
+
+    .terminal-surface {
+        background: var(--terminal-panel);
     }
 
     .logo-adaptive {

@@ -5,7 +5,7 @@
             <h1 class="terminal-title mt-2">Object Not Initialized</h1>
 
             @if (session('status'))
-                <p class="mt-4 border border-emerald-500 bg-emerald-950 p-3 text-emerald-300">{{ session('status') }}</p>
+                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4">{{ session('status') }}</p>
             @endif
 
             @if ($canInitialize)

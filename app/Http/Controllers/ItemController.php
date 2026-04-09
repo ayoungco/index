@@ -41,13 +41,21 @@ class ItemController extends Controller
         }
 
         if (! $user) {
+            $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
+
             return view('items.public', [
                 'item' => $item,
+                'itemUrl' => $itemUrl,
+                'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             ]);
         }
 
+        $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
+
         return view('items.show', [
             'item' => $item,
+            'itemUrl' => $itemUrl,
+            'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             'isAuthenticated' => true,
             'canPost' => (bool) $user->email_verified_at,
         ]);
@@ -75,7 +83,8 @@ class ItemController extends Controller
 
         return redirect()
             ->route('items.show', ['uuid' => $uuid])
-            ->with('status', 'Object initialized.');
+            ->with('status', 'Object initialized.')
+            ->with('statusType', 'notice');
     }
 
     public function addPhoto(Request $request, string $uuid): RedirectResponse
@@ -85,12 +94,34 @@ class ItemController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'photo' => ['required', 'image', 'max:15360'],
+            'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
         ]);
 
-        $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+        try {
+            $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+        } catch (\Throwable $exception) {
+            logger()->warning('Image compression failed, storing original upload.', [
+                'uuid' => $uuid,
+                'error' => $exception->getMessage(),
+            ]);
+
+            $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
+        }
+
         $absolutePath = storage_path('app/public/'.$relativePath);
-        $isQrVerified = $this->qrVerification->verifyImageContainsUuid($absolutePath, $uuid);
+        $isQrVerified = false;
+
+        if (is_file($absolutePath)) {
+            try {
+                $isQrVerified = $this->qrVerification->verifyImageContainsUuid($absolutePath, $uuid);
+            } catch (\Throwable $exception) {
+                logger()->warning('QR verification failed for uploaded photo.', [
+                    'uuid' => $uuid,
+                    'image_path' => $relativePath,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
 
         ItemEvent::query()->create([
             'item_id' => $item->id,
@@ -105,7 +136,8 @@ class ItemController extends Controller
 
         return redirect()
             ->route('items.show', ['uuid' => $uuid])
-            ->with('status', $status);
+            ->with('status', $status)
+            ->with('statusType', $isQrVerified ? 'notice' : 'critical');
     }
 
     public function print(Request $request, string $uuid): View
@@ -113,10 +145,12 @@ class ItemController extends Controller
         $item = Item::query()
             ->where('uuid', $uuid)
             ->firstOrFail();
+        $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
 
         return view('items.print', [
             'item' => $item,
-            'qrSvg' => $this->qrRenderer->renderSvg($item->uuid, 280),
+            'itemUrl' => $itemUrl,
+            'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             'isAuthenticated' => (bool) $request->user(),
         ]);
     }

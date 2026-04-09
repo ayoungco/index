@@ -5,16 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $siteSettings['label_name'] }} - {{ $item->uuid }}</title>
     <style>
+        :root {
+            --ink: #000;
+            --paper: #fff;
+            --accent: #ff4f00;
+        }
+
         body {
             margin: 0;
             font-family: "Courier New", Courier, monospace;
-            background: #fff;
-            color: #000;
+            background: #f5f5f5;
+            color: var(--ink);
         }
 
         .actions {
             padding: 12px;
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid var(--ink);
             display: flex;
             gap: 10px;
             align-items: center;
@@ -22,80 +28,107 @@
 
         .actions button,
         .actions a {
-            border: 1px solid #000;
+            border: 1px solid var(--ink);
             padding: 8px 12px;
-            color: #000;
+            color: var(--ink);
             text-decoration: none;
-            background: #fff;
+            background: var(--paper);
             cursor: pointer;
             font: inherit;
         }
 
+        .actions button:hover,
+        .actions a:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .sheet {
+            padding: 12px;
+            display: grid;
+            justify-content: center;
+        }
+
         .label {
             width: 4in;
-            height: 6in;
+            min-height: 6in;
             box-sizing: border-box;
-            border: 2px solid #000;
-            margin: 12px auto;
-            padding: 0.16in;
-            display: grid;
-            grid-template-rows: auto auto 1fr;
-            gap: 0.12in;
+            border: 2px solid var(--ink);
+            background: var(--paper);
+            margin: 0;
+            padding: 0.18in;
         }
 
         .top {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 0.1in;
-            align-items: start;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.12in;
         }
 
-        .logo-wrap {
+        .square {
+            aspect-ratio: 1 / 1;
+            border: 2px solid var(--ink);
             display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
+            align-items: center;
+            justify-content: center;
+            padding: 0.12in;
+            box-sizing: border-box;
         }
 
         .logo {
-            width: 1.6in;
-            max-width: 100%;
-            height: auto;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
         }
 
         .qr svg,
         .qr img {
-            width: 1.7in;
-            height: 1.7in;
+            width: 100%;
+            height: 100%;
             display: block;
         }
 
-        .meta h1 {
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
-        .uuid {
-            margin-top: 8px;
+        .url {
+            margin: 0.16in 0 0;
             font-size: 12px;
             word-break: break-all;
         }
 
+        .meta h1 {
+            margin: 0.12in 0 0;
+            font-size: 17px;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
         .flavor {
-            border-top: 1px solid #000;
-            padding-top: 10px;
-            font-size: 12px;
-            line-height: 1.45;
+            margin: 0.12in 0 0;
+            border-top: 1px solid var(--ink);
+            padding-top: 0.12in;
+            font-size: 13px;
+            line-height: 1.4;
             white-space: pre-wrap;
-            overflow: hidden;
         }
 
         @media print {
-            .actions { display: none; }
-            .label { margin: 0; border-width: 1px; }
-            @page { size: 4in 6in; margin: 0.05in; }
+            .actions {
+                display: none;
+            }
+
+            .sheet {
+                padding: 0;
+            }
+
+            .label {
+                border-width: 1px;
+                width: 4in;
+                min-height: 6in;
+            }
+
+            @page {
+                size: 4in 6in portrait;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -110,8 +143,6 @@
             <div class="logo-wrap">
                 <img src="{{ app(\App\Support\SiteSettings::class)->logoUrl() }}" alt="{{ config('app.name') }} logo" class="logo">
             </div>
-            <div class="qr">{!! $qrSvg !!}</div>
-        </div>
 
         <div class="meta">
             <h1>{{ $item->name }}</h1>
@@ -122,6 +153,6 @@
         <div class="flavor">
             {{ $item->description ?: $siteSettings['label_tagline'] }}
         </div>
-    </div>
+    </main>
 </body>
 </html>

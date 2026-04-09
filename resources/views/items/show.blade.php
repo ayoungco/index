@@ -1,27 +1,41 @@
 <x-layouts.app :title="$item->name">
     <section class="terminal-shell text-sm">
         <div class="terminal-panel">
-            <div class="terminal-divider flex flex-wrap items-start justify-between gap-3 border-b pb-4">
+            <div class="terminal-divider grid gap-4 border-b pb-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <p class="terminal-accent text-xs uppercase tracking-[0.2em]">Temporary Label</p>
+
+                    @if ($isAuthenticated)
+                        <a
+                            href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
+                            class="terminal-btn terminal-btn-accent"
+                        >
+                            Print Label
+                        </a>
+                    @endif
+                </div>
+
+                <div class="terminal-label-grid max-w-xl">
+                    <div class="terminal-label-square">
+                        <img src="{{ asset('index-150x150.png') }}" alt="Index square logo">
+                    </div>
+                    <div class="terminal-label-square">
+                        {!! $qrSvg !!}
+                    </div>
+                </div>
+
                 <div>
-                    <p class="terminal-accent">UUID: {{ $item->uuid }}</p>
+                    <p class="break-all text-xs">{{ $itemUrl }}</p>
+                    <p class="terminal-accent mt-2">UUID: {{ $item->uuid }}</p>
                     <h1 class="terminal-title mt-2">{{ $item->name }}</h1>
                     @if ($item->description)
                         <p class="terminal-muted mt-2 max-w-3xl">{{ $item->description }}</p>
                     @endif
                 </div>
-
-                @if ($isAuthenticated)
-                    <a
-                        href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
-                        class="terminal-btn terminal-btn-accent"
-                    >
-                        Print Label
-                    </a>
-                @endif
             </div>
 
             @if (session('status'))
-                <p class="mt-4 border border-emerald-500 bg-emerald-950 p-3 text-emerald-300">{{ session('status') }}</p>
+                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4">{{ session('status') }}</p>
             @endif
 
             @if ($isAuthenticated)
@@ -44,7 +58,7 @@
                                 id="{{ $pickerId }}"
                                 type="file"
                                 name="photo"
-                                accept="image/*"
+                                accept="image/*,.heic,.heif"
                                 capture="environment"
                                 required
                                 class="sr-only"
@@ -62,13 +76,17 @@
                                     <input
                                         type="file"
                                         name="photo"
-                                        accept="image/*"
+                                        accept="image/*,.heic,.heif"
                                         capture="environment"
                                         required
                                         class="terminal-field"
                                     >
                                 </label>
                             </noscript>
+
+                            @error('photo')
+                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                            @enderror
 
                             <div>
                                 <button type="submit" class="terminal-btn terminal-btn-accent">
@@ -93,7 +111,7 @@
                             <li class="terminal-divider border p-3">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <p>{{ $event->created_at?->toDateTimeString() }}</p>
-                                    <span class="border px-2 py-0.5 text-xs {{ $event->is_qr_verified ? 'border-emerald-500 text-emerald-500' : 'border-amber-500 text-amber-500' }}">
+                                    <span class="terminal-chip {{ $event->is_qr_verified ? 'terminal-chip-highlight' : 'terminal-chip-critical' }}">
                                         {{ $event->is_qr_verified ? 'QR verified' : 'QR flagged' }}
                                     </span>
                                 </div>

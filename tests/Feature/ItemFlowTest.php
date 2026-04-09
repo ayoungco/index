@@ -31,6 +31,8 @@ test('guest sees condensed timeline without inline images', function () {
     $response = $this->get('/'.$item->uuid);
 
     $response->assertOk();
+    $response->assertSee('Temporary Label');
+    $response->assertSee(route('items.show', ['uuid' => $item->uuid], true));
     $response->assertSee('Timeline');
     $response->assertSee('Image attached. Log in for full-resolution timeline images.');
     $response->assertDontSee('Add Photo Event');

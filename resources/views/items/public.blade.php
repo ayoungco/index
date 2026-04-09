@@ -10,12 +10,28 @@
         </div>
 
         <section class="terminal-panel">
-            <p class="terminal-accent">UUID: {{ $item->uuid }}</p>
-            <h1 class="terminal-title mt-2">{{ $item->name }}</h1>
+            <div class="terminal-divider grid gap-4 border-b pb-4">
+                <p class="terminal-accent text-xs uppercase tracking-[0.2em]">Temporary Label</p>
 
-            @if ($item->description)
-                <p class="terminal-muted mt-2">{{ $item->description }}</p>
-            @endif
+                <div class="terminal-label-grid max-w-xl">
+                    <div class="terminal-label-square">
+                        <img src="{{ asset('index-150x150.png') }}" alt="Index square logo">
+                    </div>
+                    <div class="terminal-label-square">
+                        {!! $qrSvg !!}
+                    </div>
+                </div>
+
+                <div>
+                    <p class="break-all text-xs">{{ $itemUrl }}</p>
+                    <p class="terminal-accent mt-2">UUID: {{ $item->uuid }}</p>
+                    <h1 class="terminal-title mt-2">{{ $item->name }}</h1>
+
+                    @if ($item->description)
+                        <p class="terminal-muted mt-2">{{ $item->description }}</p>
+                    @endif
+                </div>
+            </div>
 
             <p class="terminal-muted mt-3">Public view. Log in for full timeline media and posting controls.</p>
 
@@ -30,7 +46,7 @@
                             <li class="terminal-divider border p-3">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <p>{{ $event->created_at?->toDateTimeString() }}</p>
-                                    <span class="border px-2 py-0.5 text-xs {{ $event->is_qr_verified ? 'border-emerald-500 text-emerald-500' : 'border-amber-500 text-amber-500' }}">
+                                    <span class="terminal-chip {{ $event->is_qr_verified ? 'terminal-chip-highlight' : 'terminal-chip-critical' }}">
                                         {{ $event->is_qr_verified ? 'QR verified' : 'QR flagged' }}
                                     </span>
                                 </div>
