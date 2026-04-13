@@ -14,6 +14,11 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+Route::get('/company', function () {
+    return view('company');
+})->name('company');
+
 Route::get('dashboard', function () {
     $items = Item::query()
         ->latest('created_at')
