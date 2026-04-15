@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\WikidataThingController;
+use App\Http\Controllers\WikidataTypeController;
 use App\Models\Item;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -13,6 +15,16 @@ Route::post('install', [InstallerController::class, 'store'])->name('install.sto
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::prefix('wd')->name('wikidata.')->group(function () {
+    Route::get('/item/{qid}', [WikidataThingController::class, 'show'])
+        ->where('qid', 'Q[0-9]+')
+        ->name('item.show');
+
+    Route::get('/type/{type}', [WikidataTypeController::class, 'index'])
+        ->where('type', '[A-Za-z-]+')
+        ->name('type.index');
+});
 
 Route::get('dashboard', function () {
     $items = Item::query()
