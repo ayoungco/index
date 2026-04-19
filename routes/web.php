@@ -1,14 +1,10 @@
 <?php
 
-use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\SiteSettingsController;
 use App\Models\Item;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
-
-
-Route::get('install', [InstallerController::class, 'show'])->name('install.show');
-Route::post('install', [InstallerController::class, 'store'])->name('install.store');
 
 Route::get('/', function () {
     return view('welcome');
@@ -30,6 +26,8 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Route::get('settings/site', [SiteSettingsController::class, 'edit'])->name('settings.site');
+    Route::put('settings/site', [SiteSettingsController::class, 'update'])->name('settings.site.update');
 });
 
 require __DIR__.'/auth.php';

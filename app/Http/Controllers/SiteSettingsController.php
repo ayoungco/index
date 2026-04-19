@@ -5,30 +5,23 @@ namespace App\Http\Controllers;
 use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
-class InstallerController extends Controller
+class SiteSettingsController extends Controller
 {
     public function __construct(private readonly SiteSettings $siteSettings) {}
 
-    public function show(): View|RedirectResponse
+    public function edit(): View
     {
-        if ($this->siteSettings->isInstalled()) {
-            return redirect()->route('home');
-        }
-
-        return view('install.show', [
+        return view('settings.site', [
             'defaults' => $this->siteSettings->all(),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        if ($this->siteSettings->isInstalled()) {
-            return redirect()->route('home');
-        }
-
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:120'],
             'site_url' => ['required', 'url', 'max:255'],
@@ -37,11 +30,21 @@ class InstallerController extends Controller
             'label_name' => ['required', 'string', 'max:120'],
             'label_tagline' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'max:4096'],
+            'remove_logo' => ['nullable', 'boolean'],
         ]);
 
-        $logoPath = null;
+        $logoPath = $this->siteSettings->get('logo_path');
+
+        if ($request->boolean('remove_logo') && $logoPath) {
+            Storage::disk('public')->delete($logoPath);
+            $logoPath = null;
+        }
 
         if ($request->hasFile('logo')) {
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+
             $extension = $request->file('logo')->getClientOriginalExtension() ?: 'png';
             $logoPath = $request->file('logo')->storeAs(
                 'branding',
@@ -50,7 +53,7 @@ class InstallerController extends Controller
             );
         }
 
-        $this->siteSettings->install([
+        $this->siteSettings->save([
             'site_name' => $validated['site_name'],
             'site_url' => $validated['site_url'],
             'scanner_title' => $validated['scanner_title'],
@@ -61,7 +64,7 @@ class InstallerController extends Controller
         ]);
 
         return redirect()
-            ->route('home')
-            ->with('status', 'Installation complete. Your self-hosted scanner is ready.');
+            ->route('settings.site')
+            ->with('status', 'Site settings updated.');
     }
 }

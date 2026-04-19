@@ -8,6 +8,16 @@ use Illuminate\Support\Facades\Schema;
 
 class SiteSettings
 {
+    private const WRITABLE_KEYS = [
+        'site_name',
+        'site_url',
+        'logo_path',
+        'scanner_title',
+        'scanner_tagline',
+        'label_name',
+        'label_tagline',
+    ];
+
     private ?array $settings = null;
 
     public function all(): array
@@ -25,9 +35,10 @@ class SiteSettings
             ->all();
 
         $settings = array_merge($this->defaults(), $stored);
-        $settings['installed'] = filled($settings['installed_at'] ?? null);
         $settings['site_url'] = $this->normalizeUrl($settings['site_url'] ?? null) ?? config('app.url');
-        $settings['logo_url'] = $this->logoUrl($settings['logo_path'] ?? null);
+        $settings['logo_url'] = ($settings['logo_path'] ?? null)
+            ? asset('storage/'.$settings['logo_path'])
+            : asset('index-h.svg');
 
         return $this->settings = $settings;
     }
@@ -39,23 +50,20 @@ class SiteSettings
 
     public function isInstalled(): bool
     {
-        return (bool) ($this->all()['installed'] ?? false);
+        return true;
     }
 
-    public function install(array $settings): void
+    public function save(array $settings): void
     {
-        $payload = array_merge($this->defaults(), $settings, [
-            'installed_at' => $settings['installed_at'] ?? now()->toIso8601String(),
-        ]);
+        $payload = array_intersect_key(
+            array_merge($this->defaults(), $settings),
+            array_flip(self::WRITABLE_KEYS),
+        );
 
         $payload['site_url'] = $this->normalizeUrl($payload['site_url']) ?? config('app.url');
         $rows = [];
 
         foreach ($payload as $key => $value) {
-            if ($key === 'installed' || $key === 'logo_url') {
-                continue;
-            }
-
             $rows[] = [
                 'key' => $key,
                 'value' => $value,
@@ -71,9 +79,16 @@ class SiteSettings
         $this->settings = null;
     }
 
+    public function install(array $settings): void
+    {
+        $this->save($settings);
+    }
+
     public function logoUrl(?string $path = null): string
     {
-        $path ??= $this->get('logo_path');
+        if (func_num_args() === 0) {
+            $path = $this->get('logo_path');
+        }
 
         return $path
             ? asset('storage/'.$path)
@@ -83,8 +98,6 @@ class SiteSettings
     private function defaults(): array
     {
         return [
-            'installed' => false,
-            'installed_at' => null,
             'site_name' => config('app.name', 'Index'),
             'site_url' => config('app.url'),
             'logo_path' => null,

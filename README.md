@@ -26,3 +26,9 @@
 ## Installation
 
 See docs/INSTALL.md for installation instructions.
+
+## Use cases
+
+- Upcycling and repurposing materials
+- Home inventory management
+- Personal knowledge management

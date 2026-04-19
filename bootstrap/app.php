@@ -17,10 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
         Auth0ServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->appendToGroup('web', [
-            \App\Http\Middleware\EnsureApplicationInstalled::class,
-        ]);
-
         $middleware->alias([
             'auth0.verified' => \App\Http\Middleware\EnsureVerifiedEmail::class,
             'verified.email' => \App\Http\Middleware\EnsureVerifiedEmail::class,
