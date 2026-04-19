@@ -20,7 +20,7 @@
             <flux:spacer />
 
             <div class="px-2">
-                <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent w-full">Switch to Dark</button>
+                <x-theme-toggle class="w-full justify-between" />
             </div>
 
             <!-- Desktop User Menu -->
@@ -70,7 +70,7 @@
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-            <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent text-xs">Switch to Dark</button>
+            <x-theme-toggle />
 
             <flux:spacer />
 

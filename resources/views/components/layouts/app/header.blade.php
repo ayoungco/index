@@ -20,7 +20,7 @@
             <flux:spacer />
 
             <flux:navbar class="me-1.5 space-x-0.5 rtl:space-x-reverse py-0!">
-                <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent text-xs">Switch to Dark</button>
+                <x-theme-toggle />
             </flux:navbar>
 
             <!-- Desktop User Menu -->
