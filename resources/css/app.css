@@ -40,36 +40,92 @@
 
     :root {
         color-scheme: light;
-        --terminal-bg: #ffffff;
-        --terminal-panel: #ffffff;
-        --terminal-ink: #000000;
-        --terminal-muted: #262626;
-        --terminal-line: #000000;
+        --terminal-bg: #fbf7f1;
+        --terminal-panel: #fffaf5;
+        --terminal-panel-strong: #fffdf9;
+        --terminal-ink: #120d0a;
+        --terminal-muted: #4f4138;
+        --terminal-line: #201610;
         --terminal-accent: #ff4f00;
-        --terminal-accent-soft: #fff0ea;
+        --terminal-accent-soft: #ffe7db;
+        --terminal-accent-glow: rgba(255, 79, 0, 0.22);
         --terminal-critical: #d90429;
         --terminal-critical-soft: #ffe8ec;
+        --terminal-radius: 26px;
+        --terminal-shadow:
+            0 24px 60px rgba(28, 16, 10, 0.12),
+            0 8px 24px rgba(28, 16, 10, 0.08);
+        --terminal-panel-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 0 0 1px rgba(32, 22, 16, 0.07),
+            0 26px 80px rgba(40, 22, 10, 0.12),
+            0 10px 28px rgba(40, 22, 10, 0.08);
     }
 
     .dark {
         color-scheme: dark;
-        --terminal-bg: #000000;
-        --terminal-panel: #000000;
-        --terminal-ink: #ffffff;
-        --terminal-muted: #d4d4d4;
-        --terminal-line: #ffffff;
+        --terminal-bg: #090909;
+        --terminal-panel: #0f0d0b;
+        --terminal-panel-strong: #171210;
+        --terminal-ink: #f6eee6;
+        --terminal-muted: #d1beb0;
+        --terminal-line: rgba(255, 239, 228, 0.72);
         --terminal-accent: #ff4f00;
-        --terminal-accent-soft: #2c1308;
+        --terminal-accent-soft: #31160b;
+        --terminal-accent-glow: rgba(255, 79, 0, 0.3);
         --terminal-critical: #ff2d55;
         --terminal-critical-soft: #2b0a11;
+        --terminal-shadow:
+            0 32px 120px rgba(0, 0, 0, 0.62),
+            0 12px 36px rgba(0, 0, 0, 0.45);
+        --terminal-panel-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            inset 0 0 0 1px rgba(255, 120, 72, 0.08),
+            0 28px 90px rgba(0, 0, 0, 0.5),
+            0 10px 30px rgba(0, 0, 0, 0.35);
     }
 
     html,
     body {
         @apply min-h-screen;
-        background: var(--terminal-bg);
+        background:
+            radial-gradient(circle at top left, rgba(255, 79, 0, 0.12), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(255, 79, 0, 0.08), transparent 24%),
+            linear-gradient(140deg, color-mix(in srgb, var(--terminal-bg) 92%, #fff3eb) 0%, var(--terminal-bg) 56%, color-mix(in srgb, var(--terminal-bg) 90%, #0a0a0a) 100%);
         color: var(--terminal-ink);
         font-family: var(--font-sans);
+    }
+
+    body {
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.06), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.04)),
+            repeating-linear-gradient(to bottom, rgba(255, 79, 0, 0.05) 0, rgba(255, 79, 0, 0.05) 1px, transparent 1px, transparent 6px);
+        opacity: 0.45;
+        mix-blend-mode: soft-light;
+        z-index: 0;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: auto auto -14rem -10rem;
+        width: 34rem;
+        height: 34rem;
+        pointer-events: none;
+        background:
+            radial-gradient(circle at center, rgba(255, 79, 0, 0.22), rgba(255, 79, 0, 0.08) 34%, transparent 68%);
+        filter: blur(20px);
+        opacity: 0.9;
+        z-index: 0;
     }
 
     *,
@@ -84,73 +140,137 @@
 @layer components {
     .terminal-shell {
         @apply mx-auto w-full max-w-5xl p-4 sm:p-6;
+        position: relative;
+        z-index: 1;
     }
 
     .terminal-panel {
         @apply border p-4 sm:p-6;
-        border-color: var(--terminal-line);
-        background: var(--terminal-panel);
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--terminal-radius);
+        border-color: color-mix(in srgb, var(--terminal-line) 76%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 78%, #ffffff) 0%, var(--terminal-panel) 100%);
+        box-shadow: var(--terminal-panel-shadow);
+        backdrop-filter: blur(8px);
+    }
+
+    .terminal-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(125deg, rgba(255, 255, 255, 0.48), transparent 26%, transparent 68%, rgba(255, 79, 0, 0.08)),
+            radial-gradient(circle at top right, rgba(255, 79, 0, 0.12), transparent 34%);
+        opacity: 0.8;
+    }
+
+    .terminal-panel::after {
+        content: '';
+        position: absolute;
+        inset: 1.1rem;
+        pointer-events: none;
+        border-radius: calc(var(--terminal-radius) - 10px);
+        border: 1px solid color-mix(in srgb, var(--terminal-accent) 12%, transparent);
+        opacity: 0.55;
     }
 
     .terminal-divider {
-        border-color: color-mix(in srgb, var(--terminal-line) 65%, transparent);
+        border-color: color-mix(in srgb, var(--terminal-line) 48%, transparent);
     }
 
     .terminal-title {
         @apply text-xl font-bold sm:text-2xl;
         color: var(--terminal-ink);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-shadow:
+            -0.015em 0 rgba(255, 79, 0, 0.32),
+            0.015em 0 rgba(255, 255, 255, 0.25);
     }
 
     .terminal-muted {
-        color: var(--terminal-muted);
+        color: color-mix(in srgb, var(--terminal-muted) 88%, transparent);
     }
 
     .terminal-accent {
         color: var(--terminal-accent);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--terminal-accent) 18%, transparent);
     }
 
     .terminal-btn {
         @apply inline-flex items-center justify-center border px-3 py-2 text-sm font-semibold transition;
-        border-color: var(--terminal-line);
+        position: relative;
+        overflow: hidden;
+        border-radius: 999px;
+        border-color: color-mix(in srgb, var(--terminal-line) 70%, transparent);
         color: var(--terminal-ink);
-        background: transparent;
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 88%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 98%, #000000) 100%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            0 10px 24px rgba(0, 0, 0, 0.08);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .terminal-btn:hover {
-        background: var(--terminal-accent-soft);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent-soft) 78%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 96%, var(--terminal-accent-soft)) 100%);
+        transform: translateY(-1px);
     }
 
     .terminal-btn-accent {
         border-color: var(--terminal-accent);
         color: var(--terminal-accent);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.16),
+            0 0 0 1px rgba(255, 79, 0, 0.08),
+            0 14px 28px rgba(255, 79, 0, 0.18);
     }
 
     .terminal-btn-accent:hover {
-        background: var(--terminal-accent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent) 76%, #ffffff) 0%, var(--terminal-accent) 100%);
         color: #ffffff;
     }
 
     .terminal-field {
         @apply w-full border px-3 py-2 text-sm;
-        border-color: var(--terminal-line);
-        background: var(--terminal-panel);
+        border-radius: 18px;
+        border-color: color-mix(in srgb, var(--terminal-line) 62%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 60%, #ffffff) 0%, var(--terminal-panel) 100%);
         color: var(--terminal-ink);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            0 10px 18px rgba(0, 0, 0, 0.05);
     }
 
     .terminal-field:focus {
         @apply outline-none;
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+        border-color: color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--terminal-accent) 60%, transparent),
+            0 0 0 7px color-mix(in srgb, var(--terminal-accent) 16%, transparent),
+            0 12px 28px rgba(255, 79, 0, 0.12);
     }
 
     .terminal-notice {
         @apply border p-3;
+        border-radius: 18px;
         border-color: var(--terminal-accent);
-        background: var(--terminal-accent-soft);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent-soft) 85%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 90%, var(--terminal-accent-soft)) 100%);
         color: var(--terminal-ink);
+        box-shadow: 0 14px 30px rgba(255, 79, 0, 0.1);
     }
 
     .terminal-notice-critical {
         @apply border p-3;
+        border-radius: 18px;
         border-color: var(--terminal-critical);
         background: var(--terminal-critical-soft);
         color: var(--terminal-critical);
@@ -158,6 +278,11 @@
 
     .terminal-chip {
         @apply border px-2 py-0.5 text-xs;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--terminal-panel) 92%, transparent);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .terminal-chip-highlight {
@@ -176,22 +301,40 @@
 
     .terminal-label-square {
         @apply flex aspect-square items-center justify-center border p-2;
-        border-color: var(--terminal-line);
-        background: var(--terminal-panel);
     }
 
     .terminal-label-square svg,
     .terminal-label-square img {
         @apply h-full w-full object-contain;
+        border: none;
     }
 
     .terminal-surface {
-        background: var(--terminal-panel);
+        position: relative;
+        overflow: hidden;
+        border-radius: 26px;
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 76%, #ffffff) 0%, var(--terminal-panel) 100%);
+        box-shadow: var(--terminal-shadow);
+        backdrop-filter: blur(10px);
+    }
+
+    .terminal-surface::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(130deg, rgba(255, 255, 255, 0.14), transparent 24%),
+            radial-gradient(circle at top right, rgba(255, 79, 0, 0.08), transparent 30%);
+        opacity: 0.85;
     }
 
     .theme-toggle {
         @apply inline-flex items-center gap-3 text-sm font-semibold transition;
         color: var(--terminal-ink);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .theme-toggle:focus-visible {
@@ -201,8 +344,11 @@
     .theme-toggle-track {
         @apply relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition;
         border-color: color-mix(in srgb, var(--terminal-line) 75%, transparent);
-        background: color-mix(in srgb, var(--terminal-line) 12%, var(--terminal-panel));
-        box-shadow: inset 0 1px 2px color-mix(in srgb, var(--terminal-line) 15%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 80%, #ffffff) 0%, color-mix(in srgb, var(--terminal-line) 12%, var(--terminal-panel)) 100%);
+        box-shadow:
+            inset 0 1px 2px color-mix(in srgb, var(--terminal-line) 15%, transparent),
+            0 8px 16px rgba(0, 0, 0, 0.08);
     }
 
     .theme-toggle-thumb {
@@ -214,6 +360,7 @@
 
     .theme-toggle-label {
         color: var(--terminal-muted);
+        text-shadow: -0.015em 0 rgba(255, 79, 0, 0.18);
     }
 
     .theme-toggle[aria-checked="true"] .theme-toggle-track {
@@ -235,11 +382,11 @@
     }
 
     .logo-adaptive {
-        filter: none;
+        filter: contrast(1.02) drop-shadow(0 0 18px color-mix(in srgb, var(--terminal-accent) 12%, transparent));
     }
 
     .dark .logo-adaptive {
-        filter: invert(1);
+        filter: invert(1) contrast(1.04) drop-shadow(0 0 18px color-mix(in srgb, var(--terminal-accent) 14%, transparent));
     }
 }
 
