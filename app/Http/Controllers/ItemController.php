@@ -33,7 +33,7 @@ class ItemController extends Controller
             if (! $user) {
                 return view('items.missing-guest', [
                     'uuid' => $uuid,
-                    'loginUrl' => route('login', ['returnTo' => $returnToUrl], false),
+                    'loginUrl' => route('login', ['returnTo' => $returnToUrl], true),
                 ]);
             }
 
@@ -50,7 +50,7 @@ class ItemController extends Controller
                 'item' => $item,
                 'itemUrl' => $itemUrl,
                 'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
-                'loginUrl' => route('login', ['returnTo' => $returnToUrl], false),
+                'loginUrl' => route('login', ['returnTo' => $returnToUrl], true),
             ]);
         }
 

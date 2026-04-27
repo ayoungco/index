@@ -128,7 +128,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     </div>
 
     <div>
-        <a href="{{ route('login', ['returnTo' => \App\Support\AuthRedirect::resolveTarget(request())], false) }}">
+        <a href="{{ route('login', ['returnTo' => AuthRedirect::resolveTarget(request())], true) }}">
             <flux:button variant="secondary" class="w-full">{{ __('Continue with Auth0') }}</flux:button>
         </a>
     </div>

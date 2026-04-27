@@ -10,7 +10,7 @@ class AuthRedirect
 
     public static function rememberScannedItemUrl(Request $request, string $uuid): string
     {
-        $targetUrl = route('items.show', ['uuid' => $uuid], false);
+        $targetUrl = route('items.show', ['uuid' => $uuid], true);
 
         $request->session()->put(self::SCANNED_ITEM_URL_SESSION_KEY, $targetUrl);
 
@@ -25,6 +25,6 @@ class AuthRedirect
             return $targetUrl;
         }
 
-        return route($fallbackRoute, absolute: false);
+        return route($fallbackRoute, absolute: true);
     }
 }

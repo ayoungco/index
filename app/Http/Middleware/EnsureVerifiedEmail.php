@@ -16,7 +16,7 @@ class EnsureVerifiedEmail
         if (! $user) {
             return redirect()->guest(route('login', [
                 'returnTo' => AuthRedirect::resolveTarget($request),
-            ], false));
+            ], true));
         }
 
         if (! $user->email_verified_at) {
