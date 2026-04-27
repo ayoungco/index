@@ -8,7 +8,7 @@
             <section class="terminal-panel w-full">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <img src="{{ app(\App\Support\SiteSettings::class)->logoUrl() }}" alt="{{ config('app.name') }}" class="logo-adaptive h-16 w-auto">
-                    <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent text-xs">Switch to Dark</button>
+                    <x-theme-toggle />
                 </div>
 
                 @if (session('status'))
@@ -24,8 +24,6 @@
                     <a class="terminal-btn terminal-btn-accent" href="{{ route('login') }}">Log in</a>
                     @auth
                         <a class="terminal-btn" href="{{ url('/dashboard') }}">Dashboard</a>
-                    @else
-                        <a class="terminal-btn" href="{{ route('login') }}">Auth0 Access</a>
                     @endauth
                 </div>
             </section>

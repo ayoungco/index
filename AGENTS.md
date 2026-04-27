@@ -1,0 +1,1 @@
+- optimize for fast page loads

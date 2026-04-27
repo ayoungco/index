@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\AuthRedirect;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -40,7 +41,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        $this->redirectIntended(default: AuthRedirect::resolveTarget(request()), navigate: true);
     }
 
     /**
@@ -127,7 +128,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     </div>
 
     <div>
-        <a href="/login">
+        <a href="{{ route('login', ['returnTo' => AuthRedirect::resolveTarget(request())], true) }}">
             <flux:button variant="secondary" class="w-full">{{ __('Continue with Auth0') }}</flux:button>
         </a>
     </div>

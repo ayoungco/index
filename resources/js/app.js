@@ -12,13 +12,20 @@ function resolveTheme(preference) {
 function applyTheme(preference) {
     const resolved = resolveTheme(preference);
     const root = document.documentElement;
+    const isDark = resolved === 'dark';
 
-    root.classList.toggle('dark', resolved === 'dark');
+    root.classList.toggle('dark', isDark);
     root.dataset.theme = resolved;
 
-    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-        button.textContent = resolved === 'dark' ? 'Switch to Light' : 'Switch to Dark';
-        button.setAttribute('aria-label', resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+
+        const label = toggle.querySelector('[data-theme-toggle-label]');
+
+        if (label) {
+            label.textContent = isDark ? 'Light mode' : 'Dark mode';
+        }
     });
 }
 

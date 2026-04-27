@@ -1,19 +1,16 @@
 <x-layouts.app :title="$item->name">
     <section class="terminal-shell text-sm">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <a
+                href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
+                class="terminal-btn terminal-btn-accent"
+            >
+                Print Label
+            </a>
+        </div>
         <div class="terminal-panel">
             <div class="terminal-divider grid gap-4 border-b pb-4">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <p class="terminal-accent text-xs uppercase tracking-[0.2em]">Temporary Label</p>
 
-                    @if ($isAuthenticated)
-                        <a
-                            href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
-                            class="terminal-btn terminal-btn-accent"
-                        >
-                            Print Label
-                        </a>
-                    @endif
-                </div>
 
                 <div class="terminal-label-grid max-w-xl">
                     <div class="terminal-label-square">
@@ -26,7 +23,6 @@
 
                 <div>
                     <p class="break-all text-xs">{{ $itemUrl }}</p>
-                    <p class="terminal-accent mt-2">UUID: {{ $item->uuid }}</p>
                     <h1 class="terminal-title mt-2">{{ $item->name }}</h1>
                     @if ($item->description)
                         <p class="terminal-muted mt-2 max-w-3xl">{{ $item->description }}</p>

@@ -11,7 +11,7 @@
 
         <main class="terminal-shell text-sm">
             <div class="mb-3 flex justify-end">
-                <button type="button" data-theme-toggle class="terminal-btn terminal-btn-accent text-xs">Switch to Dark</button>
+                <x-theme-toggle />
             </div>
 
             <section class="terminal-panel max-w-3xl">

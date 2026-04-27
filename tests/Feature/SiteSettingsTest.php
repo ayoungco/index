@@ -1,24 +1,32 @@
 <?php
 
 use App\Models\AppSetting;
-use App\Models\Item;
 use App\Models\User;
+use App\Support\SiteSettings;
+use Auth0\Laravel\Middleware\AuthenticatorMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('first run requests are redirected to the installer', function () {
-    $response = $this->get('/');
-
-    $response->assertRedirect(route('install.show'));
+beforeEach(function () {
+    $this->withoutMiddleware(AuthenticatorMiddleware::class);
 });
 
-test('installer stores branding settings and applies them to scanner pages and labels', function () {
+test('home page is available without running an installer', function () {
+    $response = $this->get('/');
+
+    $response->assertOk();
+    $response->assertSee('One trusted source.');
+});
+
+test('authenticated users can update site settings from the admin screen', function () {
     Storage::fake('public');
 
-    $response = $this->post(route('install.store'), [
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->put(route('settings.site.update'), [
         'site_name' => 'Warehouse Scanner',
         'site_url' => 'https://scanner.example.com/',
         'scanner_title' => 'Scan with confidence.',
@@ -28,24 +36,11 @@ test('installer stores branding settings and applies them to scanner pages and l
         'logo' => UploadedFile::fake()->image('brand.png', 200, 80),
     ]);
 
-    $response->assertRedirect(route('home'));
-    expect(AppSetting::query()->where('key', 'installed_at')->exists())->toBeTrue();
+    $response->assertRedirect(route('settings.site'));
+    expect(AppSetting::query()->where('key', 'site_name')->value('value'))->toBe('Warehouse Scanner');
     expect(AppSetting::query()->where('key', 'site_url')->value('value'))->toBe('https://scanner.example.com');
-
-    $home = $this->get('/');
-    $home->assertOk();
-    $home->assertSee('Warehouse Scanner');
-    $home->assertSee('Scan with confidence.');
-
-    $user = User::factory()->create();
-    $item = Item::factory()->for($user)->create([
-        'description' => null,
-    ]);
-
-    $label = $this->actingAs($user)->get(route('items.print', ['uuid' => $item->uuid]));
-    $label->assertOk();
-    $label->assertSee('Warehouse Label');
-    $label->assertSee('Scan for the canonical warehouse record.');
+    expect(app(SiteSettings::class)->get('site_name'))->toBe('Warehouse Scanner');
+    expect(app(SiteSettings::class)->get('label_name'))->toBe('Warehouse Label');
 
     Storage::disk('public')->assertExists(AppSetting::query()->where('key', 'logo_path')->value('value'));
 });

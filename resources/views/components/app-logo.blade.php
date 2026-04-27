@@ -1,4 +1,7 @@
-<div class="flex items-center gap-2">
-    <x-app-logo-icon class="h-7 w-auto" />
-    <span class="text-sm font-semibold uppercase tracking-[0.16em]">{{ config('app.name') }}</span>
+<div class="flex items-center">
+    <img
+        src="{{ asset('index-h.svg') }}"
+        alt="{{ config('app.name') }}"
+        {{ $attributes->class('h-14 w-auto logo-adaptive') }}
+    >
 </div>
