@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\WikidataThingController;
+use App\Http\Controllers\WikidataTypeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
@@ -16,6 +18,15 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::prefix('wd')->name('wikidata.')->group(function () {
+    Route::get('/item/{qid}', [WikidataThingController::class, 'show'])
+        ->where('qid', 'Q[0-9]+')
+        ->name('item.show');
+
+    Route::get('/type/{type}', [WikidataTypeController::class, 'index'])
+        ->where('type', '[A-Za-z-]+')
+        ->name('type.index');
+});
 Route::get('auth/redirect', PostLoginRedirectController::class)
     ->middleware(['auth'])
     ->name('auth.redirect');
