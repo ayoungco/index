@@ -12,12 +12,15 @@ beforeEach(function () {
 
 test('guest sees login prompt for unknown uuid', function () {
     $uuid = (string) Str::uuid();
+    $expectedReturnTo = route('items.show', ['uuid' => $uuid], true);
 
     $response = $this->get('/'.$uuid);
 
     $response->assertOk();
     $response->assertSee('Object Not Initialized');
     $response->assertSee('Login With Auth0');
+    $response->assertSee(route('login', ['returnTo' => $expectedReturnTo], true), false);
+    $response->assertSessionHas('auth.scanned_item_url', $expectedReturnTo);
 });
 
 test('guest sees condensed timeline without inline images', function () {

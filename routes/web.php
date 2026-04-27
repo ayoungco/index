@@ -5,6 +5,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
 use App\Http\Controllers\SiteSettingsController;
+use App\Http\Controllers\Auth\PostLoginRedirectController;
 use App\Http\Controllers\ThingController;
 use App\Models\Item;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,10 @@ use Livewire\Volt\Volt;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('auth/redirect', PostLoginRedirectController::class)
+    ->middleware(['auth'])
+    ->name('auth.redirect');
 
 Route::get('dashboard', function () {
     $search = trim((string) request()->query('q', ''));
