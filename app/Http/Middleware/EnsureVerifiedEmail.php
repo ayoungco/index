@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AuthRedirect;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,9 @@ class EnsureVerifiedEmail
         $user = $request->user();
 
         if (! $user) {
-            return redirect()->guest(route('login'));
+            return redirect()->guest(route('login', [
+                'returnTo' => AuthRedirect::resolveTarget($request),
+            ], false));
         }
 
         if (! $user->email_verified_at) {

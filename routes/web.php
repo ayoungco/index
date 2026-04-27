@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\SiteSettingsController;
+use App\Http\Controllers\Auth\PostLoginRedirectController;
 use App\Models\Item;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -9,6 +10,10 @@ use Livewire\Volt\Volt;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('auth/redirect', PostLoginRedirectController::class)
+    ->middleware(['auth'])
+    ->name('auth.redirect');
 
 Route::get('dashboard', function () {
     $items = Item::query()

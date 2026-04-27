@@ -7,6 +7,7 @@ use App\Models\ItemEvent;
 use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
+use App\Support\AuthRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,6 +22,7 @@ class ItemController extends Controller
 
     public function show(Request $request, string $uuid): View
     {
+        $returnToUrl = AuthRedirect::rememberScannedItemUrl($request, $uuid);
         $user = $request->user();
         $item = Item::query()
             ->where('uuid', $uuid)
@@ -31,6 +33,7 @@ class ItemController extends Controller
             if (! $user) {
                 return view('items.missing-guest', [
                     'uuid' => $uuid,
+                    'loginUrl' => route('login', ['returnTo' => $returnToUrl], false),
                 ]);
             }
 
@@ -47,6 +50,7 @@ class ItemController extends Controller
                 'item' => $item,
                 'itemUrl' => $itemUrl,
                 'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
+                'loginUrl' => route('login', ['returnTo' => $returnToUrl], false),
             ]);
         }
 

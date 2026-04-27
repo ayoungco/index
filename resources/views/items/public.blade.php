@@ -34,6 +34,7 @@
             </div>
 
             <p class="terminal-muted mt-3">Public view. Log in for full timeline media and posting controls.</p>
+            <a href="{{ $loginUrl }}" class="terminal-btn terminal-btn-accent mt-4">Login With Auth0</a>
 
             <div class="mt-6">
                 <h2 class="terminal-accent text-base font-semibold">Timeline</h2>

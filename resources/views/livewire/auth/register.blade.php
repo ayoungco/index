@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\AuthRedirect;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -31,7 +32,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         Auth::login($user);
 
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+        $this->redirectIntended(AuthRedirect::resolveTarget(request()), navigate: true);
     }
 }; ?>
 

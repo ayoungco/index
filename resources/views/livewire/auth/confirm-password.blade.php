@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\AuthRedirect;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -28,7 +29,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         session(['auth.password_confirmed_at' => time()]);
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        $this->redirectIntended(default: AuthRedirect::resolveTarget(request()), navigate: true);
     }
 }; ?>
 
