@@ -42,8 +42,6 @@
                     @if ($canPost)
                         @php
                             $pickerId = 'photo-input-'.$item->id;
-                            $cameraId = 'camera-trigger-'.$item->id;
-                            $galleryId = 'gallery-trigger-'.$item->id;
                             $nameId = 'photo-name-'.$item->id;
                         @endphp
 
@@ -61,10 +59,11 @@
                             >
 
                             <div class="flex flex-wrap items-center gap-2">
-                                <button id="{{ $cameraId }}" type="button" class="terminal-btn terminal-btn-accent">Open Camera</button>
-                                <button id="{{ $galleryId }}" type="button" class="terminal-btn">Choose Existing</button>
+                                <button id="photo-trigger-{{ $item->id }}" type="button" class="terminal-btn terminal-btn-accent">Choose Photo</button>
                                 <span id="{{ $nameId }}" class="terminal-muted text-xs">No file selected</span>
                             </div>
+
+                            <p class="terminal-muted text-xs">Upload starts automatically after selecting a photo.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -84,7 +83,7 @@
                                 <p class="terminal-notice-critical text-xs">{{ $message }}</p>
                             @enderror
 
-                            <div>
+                            <div class="hidden" data-js-submit-fallback="{{ $item->id }}">
                                 <button type="submit" class="terminal-btn terminal-btn-accent">
                                     Add Photo
                                 </button>
@@ -139,9 +138,10 @@
         <script>
             window.bindItemPhotoPicker = window.bindItemPhotoPicker || function (id) {
                 const picker = document.getElementById(`photo-input-${id}`);
-                const camera = document.getElementById(`camera-trigger-${id}`);
-                const gallery = document.getElementById(`gallery-trigger-${id}`);
+                const trigger = document.getElementById(`photo-trigger-${id}`);
                 const name = document.getElementById(`photo-name-${id}`);
+                const fallback = document.querySelector(`[data-js-submit-fallback="${id}"]`);
+                const form = picker?.closest('form');
 
                 if (! picker || picker.dataset.bound === '1') {
                     return;
@@ -149,21 +149,28 @@
 
                 picker.dataset.bound = '1';
 
-                camera?.addEventListener('click', () => {
-                    picker.setAttribute('capture', 'environment');
+                trigger?.addEventListener('click', () => {
                     picker.click();
                 });
 
-                gallery?.addEventListener('click', () => {
-                    picker.removeAttribute('capture');
-                    picker.click();
-                });
+                fallback?.classList.add('hidden');
 
                 picker.addEventListener('change', () => {
                     const file = picker.files?.[0];
                     if (name) {
                         name.textContent = file ? file.name : 'No file selected';
                     }
+
+                    if (! file || ! form) {
+                        return;
+                    }
+
+                    if (trigger) {
+                        trigger.disabled = true;
+                        trigger.textContent = 'Uploading…';
+                    }
+
+                    form.submit();
                 });
             };
         </script>

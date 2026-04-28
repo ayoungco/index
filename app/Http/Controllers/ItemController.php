@@ -93,55 +93,67 @@ class ItemController extends Controller
 
     public function addPhoto(Request $request, string $uuid): RedirectResponse
     {
-        $item = Item::query()
-            ->where('uuid', $uuid)
-            ->firstOrFail();
-
-        $validated = $request->validate([
-            'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
-        ]);
-
         try {
-            $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+            $item = Item::query()
+                ->where('uuid', $uuid)
+                ->firstOrFail();
+
+            $validated = $request->validate([
+                'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+            ]);
+
+            try {
+                $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+            } catch (\Throwable $exception) {
+                logger()->warning('Image compression failed, storing original upload.', [
+                    'uuid' => $uuid,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
+            }
+
+            $absolutePath = storage_path('app/public/'.$relativePath);
+            $isQrVerified = false;
+
+            if (is_file($absolutePath)) {
+                try {
+                    $isQrVerified = $this->qrVerification->verifyImageContainsUuid($absolutePath, $uuid);
+                } catch (\Throwable $exception) {
+                    logger()->warning('QR verification failed for uploaded photo.', [
+                        'uuid' => $uuid,
+                        'image_path' => $relativePath,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            ItemEvent::query()->create([
+                'item_id' => $item->id,
+                'user_id' => $request->user()->id,
+                'image_path' => $relativePath,
+                'is_qr_verified' => $isQrVerified,
+            ]);
+
+            $status = $isQrVerified
+                ? 'Photo added and QR verified.'
+                : 'Photo added, but QR could not be verified. Flagged for review.';
+
+            return redirect()
+                ->route('items.show', ['uuid' => $uuid])
+                ->with('status', $status)
+                ->with('statusType', $isQrVerified ? 'notice' : 'critical');
         } catch (\Throwable $exception) {
-            logger()->warning('Image compression failed, storing original upload.', [
+            logger()->error('Failed to add photo event.', [
                 'uuid' => $uuid,
                 'error' => $exception->getMessage(),
             ]);
 
-            $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
+            return redirect()
+                ->route('items.show', ['uuid' => $uuid])
+                ->with('status', 'Upload failed due to a temporary connection issue. Please try again.')
+                ->with('statusType', 'critical');
         }
-
-        $absolutePath = storage_path('app/public/'.$relativePath);
-        $isQrVerified = false;
-
-        if (is_file($absolutePath)) {
-            try {
-                $isQrVerified = $this->qrVerification->verifyImageContainsUuid($absolutePath, $uuid);
-            } catch (\Throwable $exception) {
-                logger()->warning('QR verification failed for uploaded photo.', [
-                    'uuid' => $uuid,
-                    'image_path' => $relativePath,
-                    'error' => $exception->getMessage(),
-                ]);
-            }
-        }
-
-        ItemEvent::query()->create([
-            'item_id' => $item->id,
-            'user_id' => $request->user()->id,
-            'image_path' => $relativePath,
-            'is_qr_verified' => $isQrVerified,
-        ]);
-
-        $status = $isQrVerified
-            ? 'Photo added and QR verified.'
-            : 'Photo added, but QR could not be verified. Flagged for review.';
-
-        return redirect()
-            ->route('items.show', ['uuid' => $uuid])
-            ->with('status', $status)
-            ->with('statusType', $isQrVerified ? 'notice' : 'critical');
     }
 
     public function print(Request $request, string $uuid): View
