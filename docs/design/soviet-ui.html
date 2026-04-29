@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NORA - BIOS Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --red: #cc1a1a;
+    --red-bright: #ff2020;
+    --red-dim: #8b0000;
+    --red-glow: rgba(204, 26, 26, 0.4);
+    --red-glow-bright: rgba(255, 32, 32, 0.7);
+    --bg: #000000;
+    --bg-panel: #080808;
+    --bg-cell: #0d0000;
+    --border: #cc1a1a;
+    --text: #ffffff;
+    --text-dim: #aaaaaa;
+    --stripe-color: rgba(180, 20, 20, 0.55);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .screen {
+    width: 1000px;
+    height: 600px;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    box-shadow: 0 0 30px var(--red-glow), inset 0 0 60px rgba(100,0,0,0.08);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Scanline overlay */
+  .screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 52px;
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    position: relative;
+  }
+
+  .logo-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--red-bright);
+    filter: drop-shadow(0 0 4px var(--red-bright));
+  }
+
+  .logo-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  }
+
+  .header-center {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .neuropolymer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+
+  .neuro-count {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .neuro-icon {
+    background: var(--red);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--red-bright);
+  }
+
+  .neuro-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+  }
+
+  .neuro-number {
+    background: var(--red);
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 0 12px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--red-bright);
+    border-left: none;
+    font-family: 'Share Tech Mono', monospace;
+    text-shadow: 0 0 8px white;
+  }
+
+  /* Body */
+  .body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: 240px;
+    border-right: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .nav-list {
+    flex: 1;
+    list-style: none;
+    padding: 0;
+  }
+
+  .nav-item {
+    padding: 13px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(180,20,20,0.2);
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: rgba(180,20,20,0.1);
+  }
+
+  .nav-item.active {
+    background: var(--red);
+    color: white;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(255,255,255,0.5);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+  }
+
+  /* Skills in use */
+  .skills-in-use {
+    border-top: 2px solid var(--border);
+    padding: 14px 20px;
+  }
+
+  .skills-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .skill-slots {
+    display: flex;
+    gap: 10px;
+  }
+
+  .skill-slot {
+    width: 46px;
+    height: 46px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: #0d0000;
+  }
+
+  .skill-slot.filled {
+    background: var(--bg-panel);
+    border-color: var(--red-bright);
+  }
+
+  .skill-slot svg {
+    width: 22px;
+    height: 22px;
+    fill: var(--red-bright);
+    filter: drop-shadow(0 0 4px var(--red-bright));
+  }
+
+  /* Center grid */
+  .center-panel {
+    flex: 1;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 72px);
+    grid-template-rows: repeat(5, 72px);
+    gap: 12px;
+    position: relative;
+  }
+
+  /* SVG connector lines behind cells */
+  .connectors {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Skill cells */
+  .cell {
+    width: 72px;
+    height: 72px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg-cell);
+  }
+
+  .cell:hover {
+    border-color: var(--red-bright);
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+
+  /* Locked cell — diagonal red stripes */
+  .cell.locked {
+    background: 
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 6px,
+        var(--stripe-color) 6px,
+        var(--stripe-color) 12px
+      ),
+      var(--bg-cell);
+    border-color: var(--red-dim);
+  }
+
+  /* Unlocked cell — solid dark red background */
+  .cell.unlocked {
+    background: var(--bg-cell);
+    border-color: var(--red-bright);
+    box-shadow: 0 0 8px var(--red-glow);
+  }
+
+  /* Active/selected cell */
+  .cell.active {
+    background: var(--bg-cell);
+    border: 2px solid var(--red-bright);
+    box-shadow: 0 0 16px var(--red-glow-bright), inset 0 0 8px rgba(200,0,0,0.2);
+  }
+
+  /* Active has thick corner brackets instead of full border */
+  .cell.active::before,
+  .cell.active::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: white;
+    border-style: solid;
+    box-shadow: 0 0 6px white;
+  }
+
+  .cell.active::before {
+    top: -3px; left: -3px;
+    border-width: 2px 0 0 2px;
+  }
+
+  .cell.active::after {
+    bottom: -3px; right: -3px;
+    border-width: 0 2px 2px 0;
+  }
+
+  .cell svg {
+    width: 34px;
+    height: 34px;
+    fill: white;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.6));
+    z-index: 1;
+  }
+
+  .cell.locked svg {
+    fill: rgba(255,255,255,0.5);
+    filter: none;
+  }
+
+  /* Empty placeholder */
+  .cell.empty {
+    background: transparent;
+    border: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Right panel */
+  .right-panel {
+    width: 220px;
+    border-left: 2px solid var(--border);
+    padding: 24px 18px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .skill-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+  }
+
+  .skill-desc {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Footer */
+  .footer {
+    height: 42px;
+    border-top: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 24px;
+    padding: 0 20px;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  .footer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+
+  .key-badge {
+    background: transparent;
+    border: 1px solid var(--text-dim);
+    padding: 2px 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* Connector dots / dashed lines */
+  .connectors-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <!-- Stylized lightning bolt / figure mark -->
+          <path d="M20 2 L10 16 L16 16 L12 30 L22 14 L16 14 Z"/>
+        </svg>
+      </div>
+      <span class="logo-name">NORA</span>
+    </div>
+    <div class="header-center">BIOS Tool. USSR. 1954</div>
+    <div class="neuropolymer">
+      AVAILABLE NEUROPOLYMER
+      <div class="neuro-count">
+        <div class="neuro-icon">
+          <svg viewBox="0 0 16 16"><path d="M8 1 L10 6 L15 6 L11 9.5 L12.5 15 L8 11.5 L3.5 15 L5 9.5 L1 6 L6 6 Z"/></svg>
+        </div>
+        <div class="neuro-number">51</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <!-- Left nav -->
+    <div class="left-panel">
+      <ul class="nav-list">
+        <li class="nav-item">SHOK</li>
+        <li class="nav-item active">CHARACTER</li>
+        <li class="nav-item">FROSTBITE</li>
+        <li class="nav-item">MASS TELEKINESIS</li>
+        <li class="nav-item">POLYMERIC JET</li>
+        <li class="nav-item">POLYMERIC SHIELD</li>
+        <li class="nav-item">ENERGY MANAGEMENT</li>
+      </ul>
+
+      <div class="skills-in-use">
+        <div class="skills-label">SKILLS IN USE</div>
+        <div class="skill-slots">
+          <div class="skill-slot">
+            <!-- empty hexagon slot -->
+          </div>
+          <div class="skill-slot filled">
+            <svg viewBox="0 0 24 24"><path d="M12 2 C8 2 5 5 5 9 C5 14 12 22 12 22 C12 22 19 14 19 9 C19 5 16 2 12 2 Z M12 11 C10.3 11 9 9.7 9 8 C9 6.3 10.3 5 12 5 C13.7 5 15 6.3 15 8 C15 9.7 13.7 11 12 11 Z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center skill grid -->
+    <div class="center-panel">
+      <div style="position:relative; display:inline-block;">
+        <!-- SVG connector lines -->
+        <svg class="connectors-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .conn { stroke: #cc1a1a; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; opacity: 0.7; }
+            </style>
+          </defs>
+          <!-- Row 1 connections: col1-col2, col2-col3, col3-col4, col4-col5 -->
+          <line class="conn" x1="84" y1="42" x2="126" y2="42"/>
+          <line class="conn" x1="168" y1="42" x2="210" y2="42"/>
+          <line class="conn" x1="252" y1="42" x2="294" y2="42"/>
+          <line class="conn" x1="336" y1="42" x2="378" y2="42"/>
+          <!-- Row 1 col3 down to row2 col3 -->
+          <line class="conn" x1="210" y1="84" x2="210" y2="168"/>
+          <!-- Row 1 col4 down to row2 col4 -->
+          <line class="conn" x1="294" y1="84" x2="294" y2="168"/>
+          <!-- Row 2: col2-col3, col3-col4 -->
+          <line class="conn" x1="168" y1="210" x2="210" y2="210"/>
+          <line class="conn" x1="252" y1="210" x2="294" y2="210"/>
+          <!-- Row 2 col2 down to row3 col2 -->
+          <line class="conn" x1="210" y1="252" x2="210" y2="294"/>
+          <!-- Row 2 col3 down to row3 col3 -->
+          <line class="conn" x1="294" y1="252" x2="294" y2="294"/>
+          <!-- Row 3: col1-col2, col2-col3, col3-col4, col4-col5 -->
+          <line class="conn" x1="42" y1="294" x2="84" y2="294"/>
+          <line class="conn" x1="126" y1="294" x2="168" y2="294"/>
+          <line class="conn" x1="252" y1="294" x2="294" y2="294"/>
+          <line class="conn" x1="336" y1="294" x2="378" y2="294"/>
+          <!-- Row 3 col1 down to row4 col1 -->
+          <line class="conn" x1="42" y1="336" x2="42" y2="378"/>
+          <!-- Row 3 col3 down to row4 col3 -->
+          <line class="conn" x1="210" y1="336" x2="210" y2="378"/>
+          <!-- Row 4: col2-col3, col3-col4 -->
+          <line class="conn" x1="126" y1="378" x2="168" y2="378"/>
+          <line class="conn" x1="252" y1="378" x2="294" y2="378"/>
+          <!-- Row 4 col1 down to row5 col1 -->
+          <line class="conn" x1="42" y1="420" x2="42" y2="462"/>
+        </svg>
+
+        <div class="skill-grid">
+
+          <!-- Row 1 -->
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 2L4 7v5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V7z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 3 L15 8 L21 9 L16.5 13.5 L17.5 20 L12 17 L6.5 20 L7.5 13.5 L3 9 L9 8 Z M8 3 L6 5 M16 3 L18 5 M5 8 L3 7 M19 8 L21 7"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 2C7 2 3 6 3 11c0 4 2.5 7.5 6 9l1-2c-2.5-1.5-4-4-4-7 0-3.3 2.7-6 6-6s6 2.7 6 6c0 3-1.5 5.5-4 7l1 2c3.5-1.5 6-5 6-9 0-5-4-9-9-9z"/><circle cx="12" cy="14" r="3"/></svg>
+          </div>
+          <div class="cell locked active" id="noras-kiss">
+            <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+          </div>
+
+          <!-- Row 2 (only cols 2,3,4 filled) -->
+          <div class="cell empty"></div>
+          <div class="cell unlocked">
+            <svg viewBox="0 0 24 24"><path d="M12 2L9 9H2L7.5 13.5L5.5 21L12 17L18.5 21L16.5 13.5L22 9H15Z"/></svg>
+          </div>
+          <div class="cell active">
+            <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+          </div>
+          <div class="cell unlocked">
+            <svg viewBox="0 0 24 24"><path d="M13 2 L13 7 L18 7 L18 17 L13 17 L13 22 L11 22 L11 17 L6 17 L6 7 L11 7 L11 2 Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+          </div>
+          <div class="cell empty"></div>
+
+          <!-- Row 3 -->
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+          </div>
+          <div class="cell active">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 4 6 7c0 2 1 3.5 2.5 4.5C5 13 3 15.5 3 19h18c0-3.5-2-6-5.5-7.5C17 10.5 18 9 18 7c0-3-2.5-5-6-5z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M5 3v18l7-4 7 4V3z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M4.9 19.1l2.1-2.1M16.9 7.1l2.1-2.1"/></svg>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <div class="cell unlocked">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8" fill="none" stroke="white" stroke-width="2"/><circle cx="12" cy="12" r="11" fill="none" stroke="white" stroke-width="1" opacity="0.5"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 3L4 8v8l8 5 8-5V8z"/></svg>
+          </div>
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M3 12 A9 9 0 1 0 21 12 A9 9 0 1 0 3 12 M12 3 L12 21 M3 12 L21 12"/></svg>
+          </div>
+
+          <!-- Row 5 (only col 1) -->
+          <div class="cell locked">
+            <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+          </div>
+          <div class="cell empty"></div>
+          <div class="cell empty"></div>
+          <div class="cell empty"></div>
+          <div class="cell empty"></div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="skill-title">NORA'S KISS</div>
+      <div class="skill-desc">For a limited time, you can survive lethal damage with 1 HP. This skill has a cooldown.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-btn">
+      <span class="key-badge">TAB</span>
+      SWITCH TO CRAFTING
+    </div>
+    <div class="footer-btn">
+      <span class="key-badge">ESC</span>
+      EXIT
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
