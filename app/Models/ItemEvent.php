@@ -14,6 +14,7 @@ class ItemEvent extends Model
         'item_id',
         'user_id',
         'image_path',
+        'comment',
         'is_qr_verified',
     ];
 

@@ -27,4 +27,9 @@ class Item extends Model
     {
         return $this->hasMany(ItemEvent::class)->latest();
     }
+
+    public function accesses(): HasMany
+    {
+        return $this->hasMany(ItemAccess::class)->latest();
+    }
 }

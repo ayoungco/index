@@ -10,34 +10,22 @@
         </div>
         <div class="terminal-panel">
             <div class="terminal-divider grid gap-4 border-b pb-4">
+                @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
 
+                <p class="break-all text-xs">{{ $itemUrl }}</p>
 
-                <div class="terminal-label-grid max-w-xl">
-                    <div class="terminal-label-square">
-                        <img src="{{ asset('index-150x150.png') }}" alt="Index square logo">
-                    </div>
-                    <div class="terminal-label-square">
-                        {!! $qrSvg !!}
-                    </div>
-                </div>
-
-                <div>
-                    <p class="break-all text-xs">{{ $itemUrl }}</p>
-                    <h1 class="terminal-title mt-2">{{ $item->name }}</h1>
-                    @if ($item->description)
-                        <p class="terminal-muted mt-2 max-w-3xl">{{ $item->description }}</p>
-                    @endif
-                </div>
+                @if ($item->description)
+                    <p class="terminal-muted max-w-3xl">{{ $item->description }}</p>
+                @endif
             </div>
 
             @if (session('status'))
-                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4">{{ session('status') }}</p>
+                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4 font-semibold">{{ session('status') }}</p>
             @endif
 
             @if ($isAuthenticated)
                 <div class="terminal-divider mt-4 border p-4">
-                    <h2 class="terminal-accent text-base font-semibold">Add Photo Event</h2>
-                    <p class="terminal-muted mt-1">Use camera capture or choose an existing image. Uploads are compressed and QR-verified server-side.</p>
+                    <h2 class="terminal-accent text-base font-semibold">Timeline Entry</h2>
 
                     @if ($canPost)
                         @php
@@ -58,12 +46,33 @@
                                 class="sr-only"
                             >
 
+                            <label class="grid gap-1">
+                                <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Comment</span>
+                                <textarea
+                                    name="comment"
+                                    rows="2"
+                                    maxlength="1000"
+                                    class="terminal-field resize-y"
+                                    placeholder="Optional timeline note"
+                                >{{ old('comment') }}</textarea>
+                            </label>
+
                             <div class="flex flex-wrap items-center gap-2">
-                                <button id="photo-trigger-{{ $item->id }}" type="button" class="terminal-btn terminal-btn-accent">Choose Photo</button>
+                                <button
+                                    id="photo-trigger-{{ $item->id }}"
+                                    type="button"
+                                    class="terminal-camera-btn"
+                                    aria-label="Take or choose a photo"
+                                    title="Take or choose a photo"
+                                >
+                                    <span class="terminal-camera-btn__body" aria-hidden="true">
+                                        <span class="terminal-camera-btn__lens"></span>
+                                    </span>
+                                </button>
                                 <span id="{{ $nameId }}" class="terminal-muted text-xs">No file selected</span>
                             </div>
 
-                            <p class="terminal-muted text-xs">Upload starts automatically after selecting a photo.</p>
+                            <p class="terminal-muted text-xs">Upload starts after selecting a photo.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -82,6 +91,9 @@
                             @error('photo')
                                 <p class="terminal-notice-critical text-xs">{{ $message }}</p>
                             @enderror
+                            @error('comment')
+                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                            @enderror
 
                             <div class="hidden" data-js-submit-fallback="{{ $item->id }}">
                                 <button type="submit" class="terminal-btn terminal-btn-accent">
@@ -98,24 +110,37 @@
             <div class="mt-5">
                 <h2 class="terminal-accent text-base font-semibold">Timeline</h2>
 
-                @if ($item->events->isEmpty())
+                @if ($timeline->isEmpty())
                     <p class="terminal-muted mt-2">No events yet.</p>
                 @else
                     <ul class="mt-3 grid gap-3">
-                        @foreach ($item->events as $event)
+                        @foreach ($timeline as $event)
                             <li class="terminal-divider border p-3">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <p>{{ $event->created_at?->toDateTimeString() }}</p>
-                                    <span class="terminal-chip {{ $event->is_qr_verified ? 'terminal-chip-highlight' : 'terminal-chip-critical' }}">
-                                        {{ $event->is_qr_verified ? 'QR verified' : 'QR flagged' }}
-                                    </span>
+                                    <div>
+                                        <p>{{ $event['occurred_at']?->toDateTimeString() }}</p>
+                                        <p class="terminal-accent mt-1 text-xs uppercase tracking-[0.14em]">{{ $event['title'] }}</p>
+                                    </div>
+                                    @if ($event['type'] === 'photo')
+                                        <span class="terminal-chip {{ $event['is_qr_verified'] ? 'terminal-chip-highlight' : 'terminal-chip-critical' }}">
+                                            {{ $event['is_qr_verified'] ? 'QR verified' : 'QR flagged' }}
+                                        </span>
+                                    @endif
                                 </div>
-                                <p class="terminal-muted mt-1">Posted by: {{ $event->author?->name ?? 'Unknown user' }}</p>
+                                <p class="terminal-muted mt-1">
+                                    @if ($event['flag'])
+                                        <span aria-hidden="true">{{ $event['flag'] }}</span>
+                                    @endif
+                                    {{ $event['actor'] }}
+                                </p>
+                                @if ($event['comment'])
+                                    <p class="mt-3 whitespace-pre-wrap">{{ $event['comment'] }}</p>
+                                @endif
 
-                                @if ($event->image_path)
+                                @if ($event['image_path'])
                                     @if ($isAuthenticated)
                                         <img
-                                            src="{{ asset('storage/'.$event->image_path) }}"
+                                            src="{{ asset('storage/'.$event['image_path']) }}"
                                             alt="Item event image"
                                             class="terminal-divider mt-3 max-h-72 w-full border object-contain"
                                             loading="lazy"
@@ -167,7 +192,9 @@
 
                     if (trigger) {
                         trigger.disabled = true;
-                        trigger.textContent = 'Uploading…';
+                        trigger.setAttribute('aria-label', 'Uploading photo');
+                        trigger.setAttribute('title', 'Uploading photo');
+                        trigger.classList.add('is-uploading');
                     }
 
                     form.submit();
