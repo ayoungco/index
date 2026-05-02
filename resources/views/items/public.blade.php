@@ -29,35 +29,29 @@
                 @if ($timeline->isEmpty())
                     <p class="terminal-muted mt-2">No events yet.</p>
                 @else
-                    <ul class="mt-3 grid gap-3">
+                    <ul class="compose-log mt-3" aria-label="Timeline log">
                         @foreach ($timeline as $event)
-                            <li class="terminal-divider border p-3">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <div>
-                                        <p>{{ $event['occurred_at']?->toDateTimeString() }}</p>
-                                        <p class="terminal-accent mt-1 text-xs uppercase tracking-[0.14em]">{{ $event['title'] }}</p>
-                                    </div>
-                                    @if ($event['type'] === 'photo')
-                                        <span class="terminal-chip {{ $event['is_qr_verified'] ? 'terminal-chip-highlight' : 'terminal-chip-critical' }}">
-                                            {{ $event['is_qr_verified'] ? 'QR verified' : 'QR flagged' }}
-                                        </span>
-                                    @endif
-                                </div>
-                                <p class="terminal-muted mt-1">
-                                    @if ($event['flag'])
-                                        <span aria-hidden="true">{{ $event['flag'] }}</span>
-                                    @endif
-                                    {{ $event['actor'] }}
-                                </p>
-                                @if ($event['comment'])
-                                    <p class="mt-3 whitespace-pre-wrap">{{ $event['comment'] }}</p>
-                                @endif
-
-                                @if ($event['image_path'])
-                                    <div class="terminal-divider terminal-muted mt-3 border p-2">
-                                        Image attached. Log in for full-resolution timeline images.
-                                    </div>
-                                @endif
+                            @php
+                                $source = $event['type'] === 'photo'
+                                    ? ($event['is_qr_verified'] ? 'camera' : 'camera!')
+                                    : 'index';
+                                $sourceClass = $event['type'] === 'photo'
+                                    ? ($event['is_qr_verified'] ? 'compose-log__source--camera' : 'compose-log__source--alert')
+                                    : 'compose-log__source--index';
+                                $message = trim(collect([
+                                    $event['title'],
+                                    $event['actor'] ? 'by '.$event['actor'] : null,
+                                    $event['comment'] ?: null,
+                                    $event['image_path'] ? '[image attached]' : null,
+                                ])->filter()->implode(' | '));
+                            @endphp
+                            <li class="compose-log__line">
+                                <span class="compose-log__source {{ $sourceClass }}">{{ $source }}</span>
+                                <span class="compose-log__pipe">|</span>
+                                <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
+                                    {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
+                                </time>
+                                <span class="compose-log__message">{{ $message }}</span>
                             </li>
                         @endforeach
                     </ul>

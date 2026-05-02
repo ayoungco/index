@@ -25,4 +25,5 @@ This document is a living design document for index. It is intended to be a high
 - UI from Deus Ex: Mankind Divided 
 - Cyberpunk 2077 computer interfaces (Militech Project Cynosure)
 
-- Triangles and hexagons iconography (the logo is an equilateral hazard triangle with an "i" for information in the center, and the "i" is also a hexagon, so the logo is a triangle made of hexagons, and the hexagons are made of triangles, etc.)~~~
+- Triangles and hexagons iconography 
+- (the logo is an equilateral hazard triangle with an "i" for information in the center)

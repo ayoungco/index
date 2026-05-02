@@ -19,12 +19,12 @@ function applyTheme(preference) {
 
     document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
         toggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
-        toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        toggle.setAttribute('aria-label', isDark ? 'Switch to low CRT mode' : 'Switch to high CRT mode');
 
         const label = toggle.querySelector('[data-theme-toggle-label]');
 
         if (label) {
-            label.textContent = isDark ? 'Light mode' : 'Dark mode';
+            label.textContent = isDark ? 'CRT low' : 'CRT high';
         }
     });
 }

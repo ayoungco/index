@@ -1,0 +1,464 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'IBM Plex Mono', 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    --color-accent: #ff4f00;
+    --color-accent-content: #ff4f00;
+    --color-accent-foreground: #ffffff;
+}
+
+@layer theme {
+    .dark {
+        --color-accent: #ff4f00;
+        --color-accent-content: #ff4f00;
+        --color-accent-foreground: #000000;
+    }
+}
+
+@layer base {
+
+    :root {
+        color-scheme: light;
+        --terminal-bg: #fbf7f1;
+        --terminal-panel: #fffaf5;
+        --terminal-panel-strong: #fffdf9;
+        --terminal-ink: #120d0a;
+        --terminal-muted: #4f4138;
+        --terminal-line: #201610;
+        --terminal-accent: #ff4f00;
+        --terminal-accent-soft: #ffe7db;
+        --terminal-accent-glow: rgba(255, 79, 0, 0.22);
+        --terminal-critical: #d90429;
+        --terminal-critical-soft: #ffe8ec;
+        --terminal-radius: 26px;
+        --terminal-shadow:
+            0 24px 60px rgba(28, 16, 10, 0.12),
+            0 8px 24px rgba(28, 16, 10, 0.08);
+        --terminal-panel-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 0 0 1px rgba(32, 22, 16, 0.07),
+            0 26px 80px rgba(40, 22, 10, 0.12),
+            0 10px 28px rgba(40, 22, 10, 0.08);
+    }
+
+    .dark {
+        color-scheme: dark;
+        --terminal-bg: #090909;
+        --terminal-panel: #0f0d0b;
+        --terminal-panel-strong: #171210;
+        --terminal-ink: #f6eee6;
+        --terminal-muted: #d1beb0;
+        --terminal-line: rgba(255, 239, 228, 0.72);
+        --terminal-accent: #ff4f00;
+        --terminal-accent-soft: #31160b;
+        --terminal-accent-glow: rgba(255, 79, 0, 0.3);
+        --terminal-critical: #ff2d55;
+        --terminal-critical-soft: #2b0a11;
+        --terminal-shadow:
+            0 32px 120px rgba(0, 0, 0, 0.62),
+            0 12px 36px rgba(0, 0, 0, 0.45);
+        --terminal-panel-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            inset 0 0 0 1px rgba(255, 120, 72, 0.08),
+            0 28px 90px rgba(0, 0, 0, 0.5),
+            0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    html,
+    body {
+        @apply min-h-screen;
+        background:
+            radial-gradient(circle at top left, rgba(255, 79, 0, 0.12), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(255, 79, 0, 0.08), transparent 24%),
+            linear-gradient(140deg, color-mix(in srgb, var(--terminal-bg) 92%, #fff3eb) 0%, var(--terminal-bg) 56%, color-mix(in srgb, var(--terminal-bg) 90%, #0a0a0a) 100%);
+        color: var(--terminal-ink);
+        font-family: var(--font-sans);
+    }
+
+    body {
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.06), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.04)),
+            repeating-linear-gradient(to bottom, rgba(255, 79, 0, 0.05) 0, rgba(255, 79, 0, 0.05) 1px, transparent 1px, transparent 6px);
+        opacity: 0.45;
+        mix-blend-mode: soft-light;
+        z-index: 0;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: auto auto -14rem -10rem;
+        width: 34rem;
+        height: 34rem;
+        pointer-events: none;
+        background:
+            radial-gradient(circle at center, rgba(255, 79, 0, 0.22), rgba(255, 79, 0, 0.08) 34%, transparent 68%);
+        filter: blur(20px);
+        opacity: 0.9;
+        z-index: 0;
+    }
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--terminal-line);
+    }
+}
+
+@layer components {
+    .terminal-shell {
+        @apply mx-auto w-full max-w-5xl p-4 sm:p-6;
+        position: relative;
+        z-index: 1;
+    }
+
+    .terminal-panel {
+        @apply border p-4 sm:p-6;
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--terminal-radius);
+        border-color: color-mix(in srgb, var(--terminal-line) 76%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 78%, #ffffff) 0%, var(--terminal-panel) 100%);
+        box-shadow: var(--terminal-panel-shadow);
+        backdrop-filter: blur(8px);
+    }
+
+    .terminal-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(125deg, rgba(255, 255, 255, 0.48), transparent 26%, transparent 68%, rgba(255, 79, 0, 0.08)),
+            radial-gradient(circle at top right, rgba(255, 79, 0, 0.12), transparent 34%);
+        opacity: 0.8;
+    }
+
+    .terminal-panel::after {
+        content: '';
+        position: absolute;
+        inset: 1.1rem;
+        pointer-events: none;
+        border-radius: calc(var(--terminal-radius) - 10px);
+        border: 1px solid color-mix(in srgb, var(--terminal-accent) 12%, transparent);
+        opacity: 0.55;
+    }
+
+    .terminal-divider {
+        border-color: color-mix(in srgb, var(--terminal-line) 48%, transparent);
+    }
+
+    .terminal-title {
+        @apply text-xl font-bold sm:text-2xl;
+        color: var(--terminal-ink);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-shadow:
+            -0.015em 0 rgba(255, 79, 0, 0.32),
+            0.015em 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .terminal-muted {
+        color: color-mix(in srgb, var(--terminal-muted) 88%, transparent);
+    }
+
+    .terminal-accent {
+        color: var(--terminal-accent);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--terminal-accent) 18%, transparent);
+    }
+
+    .terminal-btn {
+        @apply inline-flex items-center justify-center border px-3 py-2 text-sm font-semibold transition;
+        position: relative;
+        overflow: hidden;
+        border-radius: 999px;
+        border-color: color-mix(in srgb, var(--terminal-line) 70%, transparent);
+        color: var(--terminal-ink);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 88%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 98%, #000000) 100%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            0 10px 24px rgba(0, 0, 0, 0.08);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .terminal-btn:hover {
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent-soft) 78%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 96%, var(--terminal-accent-soft)) 100%);
+        transform: translateY(-1px);
+    }
+
+    .terminal-btn-accent {
+        border-color: var(--terminal-accent);
+        color: var(--terminal-accent);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.16),
+            0 0 0 1px rgba(255, 79, 0, 0.08),
+            0 14px 28px rgba(255, 79, 0, 0.18);
+    }
+
+    .terminal-btn-accent:hover {
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent) 76%, #ffffff) 0%, var(--terminal-accent) 100%);
+        color: #ffffff;
+    }
+
+    .terminal-camera-btn {
+        @apply inline-flex h-12 w-14 items-center justify-center border transition;
+        border-radius: 10px;
+        border-color: var(--terminal-accent);
+        background: var(--terminal-ink);
+        color: var(--terminal-panel);
+        cursor: pointer;
+    }
+
+    .terminal-camera-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(255, 79, 0, 0.18);
+    }
+
+    .terminal-camera-btn:disabled {
+        cursor: wait;
+        opacity: 0.7;
+        transform: none;
+    }
+
+    .terminal-camera-btn__body {
+        position: relative;
+        display: block;
+        width: 2.1rem;
+        height: 1.45rem;
+        border: 2px solid currentColor;
+        border-radius: 4px;
+    }
+
+    .terminal-camera-btn__body::before {
+        content: '';
+        position: absolute;
+        top: -0.42rem;
+        left: 0.36rem;
+        width: 0.78rem;
+        height: 0.42rem;
+        border: 2px solid currentColor;
+        border-bottom: 0;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .terminal-camera-btn__lens {
+        position: absolute;
+        inset: 50% auto auto 50%;
+        width: 0.62rem;
+        height: 0.62rem;
+        border: 2px solid currentColor;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+    }
+
+    .terminal-camera-btn.is-uploading .terminal-camera-btn__lens {
+        background: var(--terminal-accent);
+    }
+
+    .terminal-field {
+        @apply w-full border px-3 py-2 text-sm;
+        border-radius: 18px;
+        border-color: color-mix(in srgb, var(--terminal-line) 62%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 60%, #ffffff) 0%, var(--terminal-panel) 100%);
+        color: var(--terminal-ink);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            0 10px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    .terminal-field:focus {
+        @apply outline-none;
+        border-color: color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--terminal-accent) 60%, transparent),
+            0 0 0 7px color-mix(in srgb, var(--terminal-accent) 16%, transparent),
+            0 12px 28px rgba(255, 79, 0, 0.12);
+    }
+
+    .terminal-notice {
+        @apply border p-3;
+        border-radius: 18px;
+        border-color: var(--terminal-accent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-accent-soft) 85%, #ffffff) 0%, color-mix(in srgb, var(--terminal-panel) 90%, var(--terminal-accent-soft)) 100%);
+        color: var(--terminal-ink);
+        box-shadow: 0 14px 30px rgba(255, 79, 0, 0.1);
+    }
+
+    .terminal-notice-critical {
+        @apply border p-3;
+        border-radius: 18px;
+        border-color: var(--terminal-critical);
+        background: var(--terminal-critical-soft);
+        color: var(--terminal-critical);
+    }
+
+    .terminal-chip {
+        @apply border px-2 py-0.5 text-xs;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--terminal-panel) 92%, transparent);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .terminal-chip-highlight {
+        border-color: var(--terminal-accent);
+        color: var(--terminal-accent);
+    }
+
+    .terminal-chip-critical {
+        border-color: var(--terminal-critical);
+        color: var(--terminal-critical);
+    }
+
+    .terminal-label-grid {
+        @apply grid grid-cols-2 gap-3;
+    }
+
+    .terminal-label-square {
+        @apply flex aspect-square items-center justify-center border p-2;
+    }
+
+    .terminal-label-square svg,
+    .terminal-label-square img {
+        @apply h-full w-full object-contain;
+        border: none;
+    }
+
+    .terminal-surface {
+        position: relative;
+        overflow: hidden;
+        border-radius: 26px;
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 76%, #ffffff) 0%, var(--terminal-panel) 100%);
+        box-shadow: var(--terminal-shadow);
+        backdrop-filter: blur(10px);
+    }
+
+    .terminal-surface::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(130deg, rgba(255, 255, 255, 0.14), transparent 24%),
+            radial-gradient(circle at top right, rgba(255, 79, 0, 0.08), transparent 30%);
+        opacity: 0.85;
+    }
+
+    .theme-toggle {
+        @apply inline-flex items-center gap-3 text-sm font-semibold transition;
+        color: var(--terminal-ink);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .theme-toggle:focus-visible {
+        @apply outline-none;
+    }
+
+    .theme-toggle-track {
+        @apply relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition;
+        border-color: color-mix(in srgb, var(--terminal-line) 75%, transparent);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--terminal-panel-strong) 80%, #ffffff) 0%, color-mix(in srgb, var(--terminal-line) 12%, var(--terminal-panel)) 100%);
+        box-shadow:
+            inset 0 1px 2px color-mix(in srgb, var(--terminal-line) 15%, transparent),
+            0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .theme-toggle-thumb {
+        @apply absolute left-1 h-6 w-6 rounded-full transition;
+        background: var(--terminal-panel);
+        border: 1px solid color-mix(in srgb, var(--terminal-line) 75%, transparent);
+        box-shadow: 0 1px 3px color-mix(in srgb, var(--terminal-line) 20%, transparent);
+    }
+
+    .theme-toggle-label {
+        color: var(--terminal-muted);
+        text-shadow: -0.015em 0 rgba(255, 79, 0, 0.18);
+    }
+
+    .theme-toggle[aria-checked="true"] .theme-toggle-track {
+        border-color: var(--terminal-accent);
+        background: color-mix(in srgb, var(--terminal-accent) 88%, #ffffff);
+    }
+
+    .dark .theme-toggle[aria-checked="true"] .theme-toggle-track {
+        background: color-mix(in srgb, var(--terminal-accent) 72%, #000000);
+    }
+
+    .theme-toggle[aria-checked="true"] .theme-toggle-thumb {
+        left: calc(100% - 1.75rem);
+        border-color: var(--terminal-accent);
+    }
+
+    .theme-toggle:focus-visible .theme-toggle-track {
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--terminal-accent) 70%, transparent);
+    }
+
+    .logo-adaptive {
+        filter: contrast(1.02) drop-shadow(0 0 18px color-mix(in srgb, var(--terminal-accent) 12%, transparent));
+    }
+
+    .dark .logo-adaptive {
+        filter: invert(1) contrast(1.04) drop-shadow(0 0 18px color-mix(in srgb, var(--terminal-accent) 14%, transparent));
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */

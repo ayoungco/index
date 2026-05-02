@@ -8,8 +8,7 @@ Sorted by an arbitrary-but-useful metric: implementation leverage. Ideas closest
 - [ ] Each registered Thing should have a human-readable landing page at a fixed, semantically meaningful URL, with their most likely type as the first segment (e.g., `/element/oxygen`, `/compound/water`, `/standard/ISO-9001`).
 - [ ] QR codes will be generated for each Thing, linking to its landing page. This will allow for easy sharing and referencing in physical documents or presentations.
 - [ ] AWS style "breadcrumbs" at the top of each Thing's page, showing its hierarchical context (e.g., `Home > Element > Oxygen`).
-- [ ] gameify scanning behavior by showing the total number of scans next to a person's username in timeline.
-- [ ] display information about a coordinate based on what can be retrieved from public APIs such as municipalities.
+
 
 ## Data model and graph shape
 
@@ -21,7 +20,7 @@ Sorted by an arbitrary-but-useful metric: implementation leverage. Ideas closest
 
 ## Product directions
 
-- [ ] a GPS-aware asset scanner based on QR. Assets are scanned to GPS coordinates, and then to addresses and sub-buildings, rooms, containers.
+
 - [ ] index page specification, minimal formatting and predictable structure like Wikidata but more useful.
 - [ ] all chemical elements and molecules.
 - [ ] index - specializing in custom intranets - integrate all of your company systems into a single interface.
@@ -56,3 +55,5 @@ Sorted by an arbitrary-but-useful metric: implementation leverage. Ideas closest
 ## Use cases
 
 - Object provenance and custody tracking for supply chains, museums, libraries, and archives - Hudson Valley House Parts.
+
+- [ ] Stripe monetization: users can press a prominent "upgrade" button to get a subscription, which will give them access to the "pro" features. This will be a one-time payment, not a recurring subscription. Weight cost benefit of adding Laravel Cashier or just implementing Stripe's API directly.1

@@ -9,5 +9,5 @@
     <span class="theme-toggle-track">
         <span class="theme-toggle-thumb"></span>
     </span>
-    <span class="theme-toggle-label" data-theme-toggle-label>Dark mode</span>
+    <span class="theme-toggle-label" data-theme-toggle-label>CRT mode</span>
 </button>
