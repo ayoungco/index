@@ -9,7 +9,7 @@ beforeEach(function () {
 });
 
 test('registration screen can be rendered', function () {
-    $response = $this->get('/register');
+    $response = $this->get('/local/register');
 
     $response->assertStatus(200);
 });

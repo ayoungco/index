@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 test('reset password link screen can be rendered', function () {
-    $response = $this->get('/forgot-password');
+    $response = $this->get('/local/forgot-password');
 
     $response->assertStatus(200);
 });
@@ -39,7 +39,7 @@ test('reset password screen can be rendered', function () {
         ->call('sendPasswordResetLink');
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = $this->get('/reset-password/'.$notification->token);
+        $response = $this->get('/local/reset-password/'.$notification->token);
 
         $response->assertStatus(200);
 

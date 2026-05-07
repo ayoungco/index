@@ -15,10 +15,12 @@ class ItemEvent extends Model
         'user_id',
         'image_path',
         'comment',
+        'tags',
         'is_qr_verified',
     ];
 
     protected $casts = [
+        'tags' => 'array',
         'is_qr_verified' => 'boolean',
     ];
 

@@ -51,10 +51,23 @@
                                 <textarea
                                     name="comment"
                                     rows="2"
-                                    maxlength="1000"
+                                    maxlength="2000"
                                     class="terminal-field resize-y"
                                     placeholder="Optional timeline note"
                                 >{{ old('comment') }}</textarea>
+                            </label>
+
+                            <label class="grid gap-1">
+                                <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Tags</span>
+                                <input
+                                    type="text"
+                                    name="tags"
+                                    value="{{ old('tags') }}"
+                                    maxlength="500"
+                                    class="terminal-field"
+                                    placeholder="handoff, warehouse-a, fragile"
+                                >
+                                <span class="terminal-muted text-xs">Separate tags with commas.</span>
                             </label>
 
                             <div class="flex flex-wrap items-center gap-2">
@@ -72,7 +85,7 @@
                                 <span id="{{ $nameId }}" class="terminal-muted text-xs">No file selected</span>
                             </div>
 
-                            <p class="terminal-muted text-xs">Upload starts after selecting a photo.</p>
+                            <p class="terminal-muted text-xs">Upload starts automatically after selecting a photo.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -92,6 +105,9 @@
                                 <p class="terminal-notice-critical text-xs">{{ $message }}</p>
                             @enderror
                             @error('comment')
+                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                            @enderror
+                            @error('tags')
                                 <p class="terminal-notice-critical text-xs">{{ $message }}</p>
                             @enderror
 

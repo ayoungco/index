@@ -110,7 +110,8 @@ class ItemController extends Controller
 
             $validated = $request->validate([
                 'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
-                'comment' => ['nullable', 'string', 'max:1000'],
+                'comment' => ['nullable', 'string', 'max:2000'],
+                'tags' => ['nullable', 'string', 'max:500'],
             ]);
 
             try {
@@ -139,11 +140,20 @@ class ItemController extends Controller
                 }
             }
 
+            $normalizedTags = collect(explode(',', (string) ($validated['tags'] ?? '')))
+                ->map(fn (string $tag) => trim($tag))
+                ->filter()
+                ->map(fn (string $tag) => mb_strtolower($tag))
+                ->unique()
+                ->values()
+                ->all();
+
             ItemEvent::query()->create([
                 'item_id' => $item->id,
                 'user_id' => $request->user()->id,
                 'image_path' => $relativePath,
                 'comment' => $validated['comment'] ?? null,
+                'tags' => $normalizedTags === [] ? null : $normalizedTags,
                 'is_qr_verified' => $isQrVerified,
             ]);
 
@@ -208,6 +218,7 @@ class ItemController extends Controller
             'actor' => $item->creator?->name ?? 'Unknown user',
             'flag' => null,
             'comment' => $item->description,
+            'tags' => null,
             'image_path' => null,
             'is_qr_verified' => null,
         ]]);
@@ -219,6 +230,7 @@ class ItemController extends Controller
             'actor' => $access->actorLabel(),
             'flag' => $access->countryFlag(),
             'comment' => null,
+            'tags' => null,
             'image_path' => null,
             'is_qr_verified' => null,
         ]);
@@ -230,6 +242,7 @@ class ItemController extends Controller
             'actor' => $event->author?->name ?? 'Unknown user',
             'flag' => null,
             'comment' => $event->comment,
+            'tags' => $event->tags,
             'image_path' => $event->image_path,
             'is_qr_verified' => $event->is_qr_verified,
         ]);

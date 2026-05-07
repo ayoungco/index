@@ -5,10 +5,6 @@
 </head>
 <body>
     <main class="terminal-shell text-sm">
-        <div class="mb-3 flex justify-end">
-            <x-theme-toggle />
-        </div>
-
         <section class="terminal-panel">
             <div class="terminal-divider grid gap-4 border-b pb-4">
                 @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])

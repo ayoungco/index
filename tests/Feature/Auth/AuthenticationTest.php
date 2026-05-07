@@ -10,7 +10,7 @@ beforeEach(function () {
 });
 
 test('login screen can be rendered', function () {
-    $response = $this->get('/login');
+    $response = $this->get('/local/login');
 
     $response->assertStatus(200);
 });
@@ -46,7 +46,7 @@ test('users can not authenticate with invalid password', function () {
 test('users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = $this->actingAs($user, 'auth0-session')->post('/local/logout');
 
     $response->assertRedirect('/');
 

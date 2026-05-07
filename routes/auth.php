@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Actions\Logout;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -25,6 +26,9 @@ Route::middleware('auth')->group(function () {
         ->name('password.confirm');
 });
 
-// Use Auth0's GET /logout route; disable Livewire's POST /logout to avoid conflicts.
-// If you still want a local logout endpoint, expose it under /local/logout.
-// Route::post('local/logout', App\Livewire\Actions\Logout::class)->name('local.logout');
+// Use Auth0's GET /logout route for the primary IdP session flow.
+Route::post('local/logout', function (Logout $logout) {
+    $logout();
+
+    return redirect('/');
+})->middleware('auth')->name('local.logout');

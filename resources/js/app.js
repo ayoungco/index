@@ -1,63 +1,78 @@
 const THEME_KEY = 'index_theme_preference';
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+const LEGACY_FLUX_THEME_KEY = 'flux.appearance';
 
 function resolveTheme(preference) {
-    if (preference === 'dark' || preference === 'light') {
+    if (preference === 'crt' || preference === 'paper' || preference === 'amber') {
         return preference;
     }
 
-    return prefersDark.matches ? 'dark' : 'light';
+    if (preference === 'dark') {
+        return 'crt';
+    }
+
+    if (preference === 'light') {
+        return 'paper';
+    }
+
+    return 'crt';
+}
+
+function storedTheme() {
+    try {
+        return localStorage.getItem(THEME_KEY) || localStorage.getItem(LEGACY_FLUX_THEME_KEY);
+    } catch (error) {
+        return null;
+    }
+}
+
+function persistTheme(theme) {
+    try {
+        localStorage.setItem(THEME_KEY, theme);
+        localStorage.removeItem(LEGACY_FLUX_THEME_KEY);
+    } catch (error) {
+        // The visual switch should still work when storage is unavailable.
+    }
 }
 
 function applyTheme(preference) {
     const resolved = resolveTheme(preference);
     const root = document.documentElement;
-    const isDark = resolved === 'dark';
 
-    root.classList.toggle('dark', isDark);
+    root.classList.toggle('dark', resolved !== 'paper');
     root.dataset.theme = resolved;
 
-    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
-        toggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
-        toggle.setAttribute('aria-label', isDark ? 'Switch to low CRT mode' : 'Switch to high CRT mode');
+    document.querySelectorAll('[data-theme-choice]').forEach((choice) => {
+        const selected = choice.dataset.themeChoice === resolved;
+        const label = choice.closest('.theme-choice');
 
-        const label = toggle.querySelector('[data-theme-toggle-label]');
-
-        if (label) {
-            label.textContent = isDark ? 'CRT low' : 'CRT high';
-        }
+        label?.classList.toggle('is-selected', selected);
+        choice.checked = selected;
+        choice.setAttribute('aria-checked', selected ? 'true' : 'false');
     });
 }
 
-function toggleTheme() {
-    const current = resolveTheme(localStorage.getItem(THEME_KEY));
-    const next = current === 'dark' ? 'light' : 'dark';
+function setTheme(theme) {
+    const next = resolveTheme(theme);
 
-    localStorage.setItem(THEME_KEY, next);
+    persistTheme(next);
     applyTheme(next);
 }
 
-function bindThemeToggles() {
-    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+function bindThemeControls() {
+    document.querySelectorAll('[data-theme-choice]').forEach((button) => {
         if (button.dataset.themeBound === '1') {
             return;
         }
 
         button.dataset.themeBound = '1';
-        button.addEventListener('click', toggleTheme);
+        button.addEventListener('change', () => setTheme(button.dataset.themeChoice));
     });
 }
 
 function initializeTheme() {
-    bindThemeToggles();
-    applyTheme(localStorage.getItem(THEME_KEY));
+    bindThemeControls();
+    applyTheme(storedTheme());
 }
-
-prefersDark.addEventListener('change', () => {
-    if (! localStorage.getItem(THEME_KEY)) {
-        applyTheme(null);
-    }
-});
 
 document.addEventListener('DOMContentLoaded', initializeTheme);
 document.addEventListener('livewire:navigated', initializeTheme);

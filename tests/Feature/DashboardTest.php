@@ -15,7 +15,7 @@ test('guests are redirected to the login page', function () {
 
 test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
-    $this->actingAs($user);
+    $this->actingAs($user, 'auth0-session');
 
     $response = $this->get('/dashboard');
     $response->assertStatus(200);

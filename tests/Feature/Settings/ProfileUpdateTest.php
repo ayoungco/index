@@ -10,7 +10,7 @@ beforeEach(function () {
 });
 
 test('profile page is displayed', function () {
-    $this->actingAs($user = User::factory()->create());
+    $this->actingAs($user = User::factory()->create(), 'auth0-session');
 
     $this->get('/settings/profile')->assertOk();
 });

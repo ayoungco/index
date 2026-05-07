@@ -6,9 +6,8 @@
     <body>
         <main class="terminal-shell flex min-h-screen items-center">
             <section class="terminal-panel w-full">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <img src="{{ app(\App\Support\SiteSettings::class)->logoUrl() }}" alt="{{ config('app.name') }}" class="logo-adaptive h-16 w-auto">
-                    <x-theme-toggle />
                 </div>
 
                 @if (session('status'))

@@ -12,14 +12,18 @@ class AuthRedirect
     {
         $targetUrl = route('items.show', ['uuid' => $uuid], true);
 
-        $request->session()->put(self::SCANNED_ITEM_URL_SESSION_KEY, $targetUrl);
+        if ($request->hasSession()) {
+            $request->session()->put(self::SCANNED_ITEM_URL_SESSION_KEY, $targetUrl);
+        }
 
         return $targetUrl;
     }
 
     public static function resolveTarget(Request $request, string $fallbackRoute = 'dashboard'): string
     {
-        $targetUrl = $request->session()->get(self::SCANNED_ITEM_URL_SESSION_KEY);
+        $targetUrl = $request->hasSession()
+            ? $request->session()->get(self::SCANNED_ITEM_URL_SESSION_KEY)
+            : null;
 
         if (is_string($targetUrl) && $targetUrl !== '') {
             return $targetUrl;

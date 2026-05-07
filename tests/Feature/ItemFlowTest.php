@@ -72,8 +72,9 @@ test('authenticated item access is recorded on the timeline', function () {
     $item = Item::factory()->create();
     $user = $item->creator;
 
+    $this->actingAs($user, 'auth0-session');
+
     $response = $this
-        ->actingAs($user)
         ->withHeader('User-Agent', 'Mozilla/5.0 Chrome/124.0.0.0 Safari/537.36')
         ->get('/'.$item->uuid);
 

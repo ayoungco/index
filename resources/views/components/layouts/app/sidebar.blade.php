@@ -4,6 +4,8 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen">
+        @php($user = auth()->user())
+
         <flux:sidebar sticky stashable class="terminal-surface terminal-divider border-e">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
@@ -26,100 +28,102 @@
 
             <flux:spacer />
 
-            <div class="px-2">
-                <x-theme-toggle class="w-full justify-between" />
-            </div>
-
             <!-- Desktop User Menu -->
-            <flux:dropdown class="hidden lg:block" position="bottom" align="start">
-                <flux:profile
-                    :name="auth()->user()->name"
-                    :initials="auth()->user()->initials()"
-                    icon:trailing="chevrons-up-down"
-                />
+            @if ($user)
+                <flux:dropdown class="hidden lg:block" position="bottom" align="start">
+                    <flux:profile
+                        :name="$user->name"
+                        :initials="$user->initials()"
+                        icon:trailing="chevrons-up-down"
+                    />
 
-                <flux:menu class="w-[220px]">
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
-                                    >
-                                        {{ auth()->user()->initials() }}
+                    <flux:menu class="w-[220px]">
+                        <flux:menu.radio.group>
+                            <div class="p-0 text-sm font-normal">
+                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                    <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                        <span
+                                            class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
+                                        >
+                                            {{ $user->initials() }}
+                                        </span>
                                     </span>
-                                </span>
 
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                    <div class="grid flex-1 text-start text-sm leading-tight">
+                                        <span class="truncate font-semibold">{{ $user->name }}</span>
+                                        <span class="truncate text-xs">{{ $user->email }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </flux:menu.radio.group>
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                    </flux:menu.radio.group>
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
-                        {{ __('Log Out') }}
-                    </flux:menu.item>
-                </flux:menu>
-            </flux:dropdown>
+                        <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
+                            {{ __('Log Out') }}
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            @else
+                <a href="{{ route('login') }}" class="terminal-btn hidden lg:inline-flex">Log in</a>
+            @endif
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-            <x-theme-toggle />
-
             <flux:spacer />
 
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
+            @if ($user)
+                <flux:dropdown position="top" align="end">
+                    <flux:profile
+                        :initials="$user->initials()"
+                        icon-trailing="chevron-down"
+                    />
 
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
-                                    >
-                                        {{ auth()->user()->initials() }}
+                    <flux:menu>
+                        <flux:menu.radio.group>
+                            <div class="p-0 text-sm font-normal">
+                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                    <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                        <span
+                                            class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
+                                        >
+                                            {{ $user->initials() }}
+                                        </span>
                                     </span>
-                                </span>
 
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                    <div class="grid flex-1 text-start text-sm leading-tight">
+                                        <span class="truncate font-semibold">{{ $user->name }}</span>
+                                        <span class="truncate text-xs">{{ $user->email }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </flux:menu.radio.group>
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                    </flux:menu.radio.group>
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
-                        {{ __('Log Out') }}
-                    </flux:menu.item>
-                </flux:menu>
-            </flux:dropdown>
+                        <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
+                            {{ __('Log Out') }}
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            @else
+                <a href="{{ route('login') }}" class="terminal-btn">Log in</a>
+            @endif
         </flux:header>
 
         {{ $slot }}

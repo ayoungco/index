@@ -10,9 +10,11 @@ class Logout
     /**
      * Log the current user out of the application.
      */
-    public function __invoke()
+    public function __invoke(): void
     {
-        // Redirect to Auth0's logout route to terminate IdP + app session
-        return redirect('/logout');
+        Auth::logout();
+
+        Session::invalidate();
+        Session::regenerateToken();
     }
 }

@@ -23,6 +23,7 @@ class ItemEventFactory extends Factory
             'user_id' => User::factory(),
             'image_path' => null,
             'comment' => null,
+            'tags' => null,
             'is_qr_verified' => fake()->boolean(60),
         ];
     }

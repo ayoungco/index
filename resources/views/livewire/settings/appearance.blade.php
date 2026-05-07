@@ -1,8 +1,9 @@
 <?php
 
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new #[Layout('components.layouts.app')] class extends Component {
     //
 }; ?>
 
@@ -10,10 +11,21 @@ new class extends Component {
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Appearance')" :subheading=" __('Update the appearance settings for your account')">
-        <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
-            <flux:radio value="light" icon="sun">{{ __('Light') }}</flux:radio>
-            <flux:radio value="dark" icon="moon">{{ __('Dark') }}</flux:radio>
-            <flux:radio value="system" icon="computer-desktop">{{ __('System') }}</flux:radio>
-        </flux:radio.group>
+        <fieldset class="theme-choice-list" aria-label="{{ __('Theme') }}">
+            <label class="theme-choice">
+                <input type="radio" name="theme" value="crt" data-theme-choice="crt">
+                <span>{{ __('CRT') }}</span>
+            </label>
+
+            <label class="theme-choice">
+                <input type="radio" name="theme" value="amber" data-theme-choice="amber">
+                <span>{{ __('Amber') }}</span>
+            </label>
+
+            <label class="theme-choice">
+                <input type="radio" name="theme" value="paper" data-theme-choice="paper">
+                <span>{{ __('Paper') }}</span>
+            </label>
+        </fieldset>
     </x-settings.layout>
 </section>

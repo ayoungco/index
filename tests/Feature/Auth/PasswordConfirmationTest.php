@@ -12,7 +12,7 @@ beforeEach(function () {
 test('confirm password screen can be rendered', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/confirm-password');
+    $response = $this->actingAs($user, 'auth0-session')->get('/confirm-password');
 
     $response->assertStatus(200);
 });
