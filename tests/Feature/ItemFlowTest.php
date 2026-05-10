@@ -3,6 +3,7 @@
 use App\Models\Item;
 use App\Models\ItemAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
@@ -24,7 +25,7 @@ test('guest sees login prompt for unknown uuid', function () {
     $response->assertSessionHas('auth.scanned_item_url', $expectedReturnTo);
 });
 
-test('guest sees condensed timeline without inline images', function () {
+test('guest sees timeline thumbnails and latest image on label', function () {
     $item = Item::factory()->create();
     $item->events()->create([
         'user_id' => $item->user_id,
@@ -40,7 +41,8 @@ test('guest sees condensed timeline without inline images', function () {
     $response->assertSee(route('items.show', ['uuid' => $item->uuid], true));
     $response->assertSee('Timeline');
     $response->assertSee('Shelf check complete.');
-    $response->assertSee('Image attached. Log in for full-resolution timeline images.');
+    $response->assertSee(Storage::disk('public')->url('items/'.$item->uuid.'/photo.jpg'), false);
+    $response->assertSee('Latest image for '.$item->name);
     $response->assertDontSee('Add Photo Event');
 });
 

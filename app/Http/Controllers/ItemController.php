@@ -12,6 +12,7 @@ use App\Support\AuthRedirect;
 use Illuminate\Support\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ItemController extends Controller
@@ -157,14 +158,10 @@ class ItemController extends Controller
                 'is_qr_verified' => $isQrVerified,
             ]);
 
-            $status = $isQrVerified
-                ? 'Photo added and QR verified.'
-                : 'Photo added, but QR could not be verified. Flagged for review.';
-
             return redirect()
                 ->route('items.show', ['uuid' => $uuid])
-                ->with('status', $status)
-                ->with('statusType', $isQrVerified ? 'notice' : 'critical');
+                ->with('status', 'Photo added.')
+                ->with('statusType', 'notice');
         } catch (\Throwable $exception) {
             logger()->error('Failed to add photo event.', [
                 'uuid' => $uuid,
@@ -220,6 +217,7 @@ class ItemController extends Controller
             'comment' => $item->description,
             'tags' => null,
             'image_path' => null,
+            'image_url' => null,
             'is_qr_verified' => null,
         ]]);
 
@@ -232,6 +230,7 @@ class ItemController extends Controller
             'comment' => null,
             'tags' => null,
             'image_path' => null,
+            'image_url' => null,
             'is_qr_verified' => null,
         ]);
 
@@ -244,6 +243,7 @@ class ItemController extends Controller
             'comment' => $event->comment,
             'tags' => $event->tags,
             'image_path' => $event->image_path,
+            'image_url' => $event->image_path ? Storage::disk('public')->url($event->image_path) : null,
             'is_qr_verified' => $event->is_qr_verified,
         ]);
 

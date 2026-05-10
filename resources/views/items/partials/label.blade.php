@@ -51,8 +51,36 @@
             overflow-wrap: anywhere;
             text-transform: uppercase;
         }
+
+        .index-min-label__latest {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .index-min-label__latest img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            object-fit: cover;
+        }
     </style>
 @endonce
+
+@php
+    $latestImagePath = $item->relationLoaded('events')
+        ? $item->events->firstWhere('image_path')?->image_path
+        : $item->events()->whereNotNull('image_path')->latest()->value('image_path');
+    $latestImageUrl = $latestImagePath
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($latestImagePath)
+        : null;
+@endphp
 
 <div class="index-min-label" aria-label="Index QR label for {{ $item->name }}">
     <div class="index-min-label__top">
@@ -63,6 +91,10 @@
             {!! $qrSvg !!}
         </span>
     </div>
-    <br>
     <div class="index-min-label__title">{{ $item->name }}</div>
+    @if ($latestImageUrl)
+        <span class="index-min-label__latest">
+            <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
+        </span>
+    @endif
 </div>

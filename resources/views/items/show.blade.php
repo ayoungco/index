@@ -132,26 +132,37 @@
                     <ul class="compose-log mt-3" aria-label="Timeline log">
                         @foreach ($timeline as $event)
                             @php
-                                $source = $event['type'] === 'photo'
-                                    ? ($event['is_qr_verified'] ? 'camera' : 'camera!')
-                                    : 'index';
+                                $source = $event['type'] === 'photo' ? 'camera' : 'index';
                                 $sourceClass = $event['type'] === 'photo'
-                                    ? ($event['is_qr_verified'] ? 'compose-log__source--camera' : 'compose-log__source--alert')
+                                    ? 'compose-log__source--camera'
                                     : 'compose-log__source--index';
                                 $message = trim(collect([
                                     $event['title'],
                                     $event['actor'] ? 'by '.$event['actor'] : null,
                                     $event['comment'] ?: null,
-                                    $event['image_path'] ? '[image attached]' : null,
                                 ])->filter()->implode(' | '));
                             @endphp
-                            <li class="compose-log__line">
-                                <span class="compose-log__source {{ $sourceClass }}">{{ $source }}</span>
-                                <span class="compose-log__pipe">|</span>
-                                <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
-                                    {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
-                                </time>
-                                <span class="compose-log__message">{{ $message }}</span>
+                            <li class="compose-log__line {{ $event['image_url'] ? 'compose-log__line--media' : '' }}">
+                                <div class="compose-log__meta">
+                                    <span class="compose-log__source {{ $sourceClass }}">{{ $source }}</span>
+                                    <span class="compose-log__pipe">|</span>
+                                    <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
+                                        {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
+                                    </time>
+                                    <span class="compose-log__message">{{ $message }}</span>
+                                </div>
+                                @if ($event['image_url'])
+                                    <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
+                                        <img src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
+                                    </a>
+                                @endif
+                                @if (! empty($event['tags']))
+                                    <div class="compose-log__tags" aria-label="Tags">
+                                        @foreach ($event['tags'] as $tag)
+                                            <span class="compose-log__tag">{{ $tag }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
                     </ul>
