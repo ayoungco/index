@@ -3,6 +3,76 @@
         <div class="terminal-panel">
             <div class="terminal-divider border-b px-4 py-3">
                 <h2 class="terminal-muted text-sm font-semibold uppercase tracking-[0.2em]">
+                    Create From Photo
+                </h2>
+            </div>
+
+            @if (session('status'))
+                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mx-4 mt-4 font-semibold">{{ session('status') }}</p>
+            @endif
+
+            @if ($canCreateFromPhoto)
+                <form method="POST" action="{{ route('items.from-photo.store') }}" enctype="multipart/form-data" class="grid gap-4 px-4 py-4">
+                    @csrf
+
+                    <label class="grid gap-1">
+                        <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Photo</span>
+                        <input
+                            type="file"
+                            name="photo"
+                            accept="image/*,.heic,.heif"
+                            capture="environment"
+                            required
+                            class="terminal-field"
+                        >
+                        <span class="terminal-muted text-xs">Required. Take or choose a photo to create an object before you attach its QR label.</span>
+                    </label>
+
+                    <label class="grid gap-1">
+                        <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Name</span>
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ old('name') }}"
+                            maxlength="255"
+                            class="terminal-field"
+                            placeholder="Optional — defaults to Photo item timestamp"
+                        >
+                    </label>
+
+                    <label class="grid gap-1">
+                        <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Initial Note</span>
+                        <textarea
+                            name="description"
+                            rows="3"
+                            maxlength="5000"
+                            class="terminal-field resize-y"
+                            placeholder="Optional description or context"
+                        >{{ old('description') }}</textarea>
+                    </label>
+
+                    @error('photo')
+                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                    @enderror
+                    @error('name')
+                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                    @enderror
+                    @error('description')
+                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                    @enderror
+
+                    <button type="submit" class="terminal-btn terminal-btn-accent w-full sm:w-auto">
+                        Create Item From Photo
+                    </button>
+                </form>
+            @else
+                <p class="terminal-muted px-4 py-4 text-sm">Verify your Auth0 email before creating objects from photos.</p>
+            @endif
+        </div>
+
+        <div class="terminal-panel">
+            <div class="terminal-divider border-b px-4 py-3">
+                <h2 class="terminal-muted text-sm font-semibold uppercase tracking-[0.2em]">
                     Existing Objects
                 </h2>
             </div>

@@ -54,7 +54,9 @@ Route::get('dashboard', function () {
         ->limit(100)
         ->get(['id', 'uuid', 'name', 'description', 'created_at']);
 
-    return view('dashboard', compact('items', 'search'));
+    $canCreateFromPhoto = (bool) request()->user()?->email_verified_at;
+
+    return view('dashboard', compact('items', 'search', 'canCreateFromPhoto'));
 })
     ->middleware(['auth'])
     ->name('dashboard');
@@ -72,6 +74,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('properties', PropertyController::class)->only(['index']);
     Route::resource('relations', RelationController::class)->only(['index']);
     Route::resource('messages', MessageController::class)->only(['index']);
+
+    Route::post('items/from-photo', [ItemController::class, 'storeFromPhoto'])
+        ->middleware(['auth0.verified'])
+        ->name('items.from-photo.store');
 });
 
 require __DIR__.'/auth.php';

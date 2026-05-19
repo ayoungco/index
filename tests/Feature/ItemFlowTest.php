@@ -2,7 +2,10 @@
 
 use App\Models\Item;
 use App\Models\ItemAccess;
+use App\Models\User;
+use App\Services\ImageCompressionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -68,6 +71,69 @@ test('guest item access is recorded as anonymous timeline activity', function ()
         'country_code' => 'US',
         'browser' => 'Safari',
     ]);
+});
+
+test('dashboard exposes a create from photo workflow to verified users', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->get('/dashboard');
+
+    $response->assertOk();
+    $response->assertSee('Create From Photo');
+    $response->assertSee('Create Item From Photo');
+    $response->assertSee(route('items.from-photo.store'), false);
+});
+
+test('verified users can create a new item from only a photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $this->mock(ImageCompressionService::class, function ($mock) {
+        $mock->shouldReceive('compressAndStore')
+            ->once()
+            ->andReturnUsing(function (UploadedFile $_photo, string $uuid): string {
+                $path = 'items/'.$uuid.'/photo.jpg';
+                Storage::disk('public')->put($path, 'compressed-photo');
+
+                return $path;
+            });
+    });
+
+    $this->actingAs($user, 'auth0-session');
+
+    $jpeg = base64_decode(implode('', [
+        '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////',
+        '////////////////////////////////////////////////////////2wBDAf//////',
+        '////////////////////////////////////////////////////////////wAARCAAB',
+        'AAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAA',
+        'AAAAAAAAAAAA/9oADAMBAAIQAxAAAAH/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oA',
+        'CAEBAAEFAqf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/Aaf/xAAUEQEA',
+        'AAAAAAAAAAAAAAAAAAAA/9oACAECAQE/Aaf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA',
+        '/9oACAEBAAY/Aqf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/IX//2gAM',
+        'AwEAAgADAAAAEP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QP//EABQR',
+        'AQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QP//EABQQAQAAAAAAAAAAAAAAAAAA',
+        'ABD/2gAIAQEAAT8QP//Z',
+    ]));
+
+    $response = $this->post(route('items.from-photo.store'), [
+        'photo' => UploadedFile::fake()->createWithContent('new-item.jpg', $jpeg),
+    ]);
+
+    $item = Item::query()->sole();
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    expect($item->name)->toStartWith('Photo item ');
+    expect($item->description)->toBeNull();
+    expect($item->creator->is($user))->toBeTrue();
+
+    $event = $item->events()->sole();
+    expect($event->image_path)->toBe('items/'.$item->uuid.'/photo.jpg');
+    expect($event->comment)->toBeNull();
+    expect($event->is_qr_verified)->toBeFalse();
+    Storage::disk('public')->assertExists($event->image_path);
 });
 
 test('authenticated item access is recorded on the timeline', function () {

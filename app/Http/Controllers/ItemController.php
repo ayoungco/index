@@ -9,10 +9,13 @@ use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
 use App\Support\AuthRedirect;
-use Illuminate\Support\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ItemController extends Controller
@@ -85,21 +88,95 @@ class ItemController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+            'comment' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        Item::query()->create([
+        $item = Item::query()->create([
             'uuid' => $uuid,
-            'name' => $validated['name'],
+            'name' => filled($validated['name'] ?? null) ? $validated['name'] : $uuid,
             'description' => $validated['description'] ?? null,
             'user_id' => $request->user()->id,
         ]);
 
+        try {
+            $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
+        } catch (\Throwable $exception) {
+            logger()->warning('Image compression failed on init photo, storing original.', [
+                'uuid' => $uuid,
+                'error' => $exception->getMessage(),
+            ]);
+            $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
+        }
+
+        ItemEvent::query()->create([
+            'item_id' => $item->id,
+            'user_id' => $request->user()->id,
+            'image_path' => $relativePath,
+            'comment' => filled($validated['comment'] ?? null) ? $validated['comment'] : null,
+            'tags' => null,
+            'is_qr_verified' => false,
+        ]);
+
         return redirect()
             ->route('items.show', ['uuid' => $uuid])
-            ->with('status', 'Object initialized.')
+            ->with('status', 'Object registered.')
             ->with('statusType', 'notice');
+    }
+
+    public function storeFromPhoto(Request $request): RedirectResponse
+    {
+        try {
+            $validated = $request->validate([
+                'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+                'name' => ['nullable', 'string', 'max:255'],
+                'description' => ['nullable', 'string', 'max:5000'],
+            ]);
+
+            $uuid = (string) Str::uuid();
+            $name = trim((string) ($validated['name'] ?? ''));
+
+            if ($name === '') {
+                $name = 'Photo item '.now()->format('Y-m-d H:i');
+            }
+
+            $item = Item::query()->create([
+                'uuid' => $uuid,
+                'name' => $name,
+                'description' => $validated['description'] ?? null,
+                'user_id' => $request->user()->id,
+            ]);
+
+            $relativePath = $this->storePhotoForItem($validated['photo'], $uuid);
+
+            ItemEvent::query()->create([
+                'item_id' => $item->id,
+                'user_id' => $request->user()->id,
+                'image_path' => $relativePath,
+                'comment' => $validated['description'] ?? null,
+                'tags' => null,
+                'is_qr_verified' => false,
+            ]);
+
+            return redirect()
+                ->route('items.show', ['uuid' => $uuid])
+                ->with('status', 'Object created from photo. Print a label when you are ready to attach its QR code.')
+                ->with('statusType', 'notice');
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            logger()->error('Failed to create item from photo.', [
+                'error' => $exception->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('dashboard')
+                ->withInput($request->except('photo'))
+                ->with('status', 'Photo item creation failed due to a temporary connection issue. Please try again.')
+                ->with('statusType', 'critical');
+        }
     }
 
     public function addPhoto(Request $request, string $uuid): RedirectResponse
@@ -115,16 +192,7 @@ class ItemController extends Controller
                 'tags' => ['nullable', 'string', 'max:500'],
             ]);
 
-            try {
-                $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
-            } catch (\Throwable $exception) {
-                logger()->warning('Image compression failed, storing original upload.', [
-                    'uuid' => $uuid,
-                    'error' => $exception->getMessage(),
-                ]);
-
-                $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
-            }
+            $relativePath = $this->storePhotoForItem($validated['photo'], $uuid);
 
             $absolutePath = storage_path('app/public/'.$relativePath);
             $isQrVerified = false;
@@ -188,6 +256,20 @@ class ItemController extends Controller
             'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             'isAuthenticated' => (bool) $request->user(),
         ]);
+    }
+
+    private function storePhotoForItem(UploadedFile $photo, string $uuid): string
+    {
+        try {
+            return $this->imageCompression->compressAndStore($photo, $uuid);
+        } catch (\Throwable $exception) {
+            logger()->warning('Image compression failed, storing original upload.', [
+                'uuid' => $uuid,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return $photo->store('items/'.$uuid, 'public');
+        }
     }
 
     private function recordAccess(Request $request, Item $item): void
