@@ -8,11 +8,11 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
 use App\Http\Controllers\SiteSettingsController;
 use App\Http\Controllers\Auth\PostLoginRedirectController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\ThingController;
 use App\Models\Item;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
-use Livewire\Volt\Volt;
 
 Route::get('/', function () {
     return view('welcome');
@@ -52,7 +52,7 @@ Route::get('dashboard', function () {
         })
         ->latest('created_at')
         ->limit(100)
-        ->get(['id', 'uuid', 'name', 'description', 'created_at']);
+        ->get(['id', 'uuid', 'name', 'slug', 'wikidata_qid', 'type_namespace', 'description', 'created_at']);
 
     $canCreateFromPhoto = (bool) request()->user()?->email_verified_at;
 
@@ -64,9 +64,8 @@ Route::get('dashboard', function () {
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
-    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-    Volt::route('settings/password', 'settings.password')->name('settings.password');
-    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('settings.profile');
+    Route::put('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
     Route::get('settings/site', [SiteSettingsController::class, 'edit'])->name('settings.site');
     Route::put('settings/site', [SiteSettingsController::class, 'update'])->name('settings.site.update');
 
@@ -98,6 +97,13 @@ Route::post('/{uuid}/events', [ItemController::class, 'addPhoto'])
     ->whereUuid('uuid')
     ->middleware(['auth0.authenticate', 'auth0.verified'])
     ->name('items.events.store');
+
+Route::get('/{namespace}/{slug}', [ItemController::class, 'showBySemantic'])
+    ->where([
+        'namespace' => '^(?!auth$|dashboard$|settings$|things$|properties$|relations$|messages$|wd$)[A-Za-z][A-Za-z0-9-]*$',
+        'slug' => '[A-Za-z0-9\-\._~%]+',
+    ])
+    ->name('items.semantic.show');
 
 Route::get('/{slug}', [ThingController::class, 'showBySlug'])
     ->where('slug', '^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$)(?!dashboard$|settings$|things$|properties$|relations$|messages$)[A-Za-z0-9\-\._~%]+$')

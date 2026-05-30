@@ -1,15 +1,15 @@
 <x-layouts.app :title="__('Register Object')">
-    <section class="terminal-shell text-sm">
-        <div class="terminal-panel max-w-4xl">
-            <p class="terminal-accent">[SCAN TARGET: {{ $uuid }}]</p>
-            <h1 class="terminal-title mt-2">New Object</h1>
+    <section class="app-shell text-sm">
+        <div class="app-panel max-w-4xl">
+            <p class="app-accent">[SCAN TARGET: {{ $uuid }}]</p>
+            <h1 class="app-title mt-2">New Object</h1>
 
             @if (session('status'))
-                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4">{{ session('status') }}</p>
+                <p class="{{ session('statusType') === 'critical' ? 'app-notice' : 'app-notice' }} mt-4">{{ session('status') }}</p>
             @endif
 
             @if ($canInitialize)
-                <p class="terminal-muted mt-4">Take a photo to register this object. The image becomes the first entry in its timeline.</p>
+                <p class="app-muted mt-4">Take a photo to register this object. The image becomes the first entry in its timeline.</p>
 
                 @php $pickerId = 'init-photo-input'; $nameId = 'init-photo-name'; @endphp
 
@@ -36,72 +36,92 @@
                         <button
                             id="init-photo-trigger"
                             type="button"
-                            class="terminal-camera-btn"
+                            class="app-btn"
                             aria-label="Take or choose a photo"
                             title="Take or choose a photo"
                         >
-                            <span class="terminal-camera-btn__body" aria-hidden="true">
-                                <span class="terminal-camera-btn__lens"></span>
+                            <span class="app-camera-btn__body" aria-hidden="true">
+                                <span class="app-camera-btn__lens"></span>
                             </span>
                         </button>
-                        <span id="{{ $nameId }}" class="terminal-muted">No photo selected</span>
+                        <span id="{{ $nameId }}" class="app-muted">No photo selected</span>
                     </div>
 
                     <div id="init-fields" class="hidden grid gap-4">
                         <label class="grid gap-1">
-                            <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Name <span class="terminal-muted normal-case">(optional)</span></span>
+                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Name <span class="app-muted normal-case">(optional)</span></span>
                             <input
                                 type="text"
                                 name="name"
                                 value="{{ old('name') }}"
                                 maxlength="255"
-                                class="terminal-field"
+                                class="app-field"
                                 placeholder="Leave blank to use the object ID"
                             >
                         </label>
 
                         <label class="grid gap-1">
-                            <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Note <span class="terminal-muted normal-case">(optional)</span></span>
+                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Note <span class="app-muted normal-case">(optional)</span></span>
                             <textarea
                                 name="comment"
                                 rows="2"
                                 maxlength="2000"
-                                class="terminal-field resize-y"
+                                class="app-field resize-y"
                                 placeholder="Condition, location, context…"
                             >{{ old('comment') }}</textarea>
                         </label>
 
-                        <button type="submit" class="terminal-btn terminal-btn-accent w-full sm:w-auto">
+                        <label class="grid gap-1">
+                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Wikidata QID <span class="app-muted normal-case">(optional)</span></span>
+                            <input
+                                type="text"
+                                name="wikidata_qid"
+                                value="{{ old('wikidata_qid') }}"
+                                maxlength="32"
+                                pattern="Q[1-9][0-9]*"
+                                class="app-field"
+                                placeholder="Q629"
+                            >
+                        </label>
+
+                        <button type="submit" class="app-btn app-btn w-full sm:w-auto">
                             Register Object
                         </button>
                     </div>
 
                     @error('photo')
-                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                        <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     @error('name')
-                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                        <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     @error('comment')
-                        <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                        <p class="app-notice text-xs">{{ $message }}</p>
+                    @enderror
+                    @error('wikidata_qid')
+                        <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
 
                     <noscript>
                         <div class="grid gap-4">
                             <label class="grid gap-1">
-                                <span class="terminal-accent">Photo</span>
-                                <input type="file" name="photo" accept="image/*,.heic,.heif" capture="environment" required class="terminal-field">
+                                <span class="app-accent">Photo</span>
+                                <input type="file" name="photo" accept="image/*,.heic,.heif" capture="environment" required class="app-field">
                             </label>
                             <label class="grid gap-1">
-                                <span class="terminal-accent">Name <span class="terminal-muted">(optional)</span></span>
-                                <input type="text" name="name" maxlength="255" class="terminal-field">
+                                <span class="app-accent">Name <span class="app-muted">(optional)</span></span>
+                                <input type="text" name="name" maxlength="255" class="app-field">
                             </label>
-                            <button type="submit" class="terminal-btn terminal-btn-accent">Register Object</button>
+                            <label class="grid gap-1">
+                                <span class="app-accent">Wikidata QID <span class="app-muted">(optional)</span></span>
+                                <input type="text" name="wikidata_qid" maxlength="32" pattern="Q[1-9][0-9]*" class="app-field">
+                            </label>
+                            <button type="submit" class="app-btn app-btn">Register Object</button>
                         </div>
                     </noscript>
                 </form>
             @else
-                <p class="terminal-muted mt-4">Your Auth0 account email must be verified before registering objects.</p>
+                <p class="app-muted mt-4">Your Auth0 account email must be verified before registering objects.</p>
             @endif
         </div>
     </section>

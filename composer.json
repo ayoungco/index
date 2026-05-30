@@ -1,22 +1,20 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "index/app",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "A spartan QR-scanning index application.",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
     "require": {
-        "php": "<8.4",
-        "auth0/login": "^7.17",
+        "php": "^8.3",
+        "auth0/login": "^7.22",
         "intervention/image": "^3.11",
         "khanamiryan/qrcode-detector-decoder": "^2.0",
-        "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1",
-        "livewire/flux": "^2.1.1",
-        "livewire/volt": "^1.7.0",
+        "laravel/framework": "^13.0",
+        "laravel/tinker": "^3.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {
@@ -26,8 +24,8 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-laravel": "^3.2"
+        "pestphp/pest": "^4.4.1",
+        "pestphp/pest-plugin-laravel": "^4.1"
     },
     "autoload": {
         "psr-4": {

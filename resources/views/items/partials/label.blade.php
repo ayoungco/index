@@ -7,7 +7,7 @@
             padding: 0;
             background: #fff;
             color: #000;
-            font-family: "IBM Plex Mono", "Courier New", monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
             line-height: 1;
         }
 

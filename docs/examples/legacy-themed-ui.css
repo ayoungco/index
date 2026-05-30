@@ -1,0 +1,80 @@
+html {
+    background: #000;
+    color: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        linear-gradient(90deg, rgba(204, 26, 26, 0.08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(204, 26, 26, 0.06) 1px, transparent 1px),
+        #000;
+    background-size: 72px 72px, 72px 72px, auto;
+}
+
+.terminal-shell {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.terminal-panel {
+    border: 2px solid #cc1a1a;
+    padding: 1.5rem;
+    background: #080000;
+    box-shadow: 0 0 22px rgba(204, 26, 26, 0.28);
+}
+
+.terminal-title {
+    margin: 0.5rem 0 0;
+    font-size: 1.75rem;
+    text-transform: uppercase;
+}
+
+.terminal-muted {
+    color: #b7b7b7;
+}
+
+.terminal-accent {
+    color: #ff2020;
+    font-weight: 700;
+}
+
+.terminal-btn {
+    display: inline-flex;
+    border: 1px solid #cc1a1a;
+    color: #fff;
+    background: #080000;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+}
+
+.terminal-btn-accent {
+    border-color: #ff2020;
+}
+
+.flex {
+    display: flex;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}

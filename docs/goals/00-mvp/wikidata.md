@@ -14,21 +14,18 @@ Status of Wikidata integration and what's left to build.
 | `config/services.php` — service config | ✅ built |
 | Routes `/wd/item/{qid}` and `/wd/type/{type}` | ✅ wired |
 | `database/wikidata-neo4j-importer/` — dump import pipeline | ✅ exists |
-| `wikidata_qid` on `Item` model | ❌ not yet |
+| `wikidata_qid` on `Item` model | ✅ built |
 | `wikidata_entities` local cache table | ❌ not yet |
-| Wikidata enrichment on item show page | ❌ not yet |
+| Wikidata enrichment on item show page | ✅ built |
 | QID search in item initialization flow | ❌ not yet |
 
 ---
 
 ## What's left for MVP
 
-1. Add `slug`, `wikidata_qid`, `type_namespace` to `items` table
-2. Add `wikidata_entities` cache table (`qid`, `label`, `description`, `claims_json`, `fetched_at`)
-3. Add a resolver service: search → rank → fetch → cache (wraps existing `Wikidata` service)
-4. Wire enrichment into `ItemController::show` — when `wikidata_qid` is set, load Wikidata label, description, and `P31 (instance of)` chain; derive `type_namespace` if not already set
-5. Add Wikidata concept search to the item initialization/claim flow — search-as-you-type, returns QID + label + description, user picks one to categorize the item
-6. Add `/{namespace}/{slug}` route through `ItemController`
+1. Add `wikidata_entities` cache table (`qid`, `label`, `description`, `claims_json`, `fetched_at`)
+2. Add a resolver service: search → rank → fetch → cache (wraps existing `Wikidata` service)
+3. Add Wikidata concept search to the item initialization/claim flow — search-as-you-type, returns QID + label + description, user picks one to categorize the item
 
 ---
 

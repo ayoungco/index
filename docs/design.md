@@ -155,9 +155,6 @@ Trigger for migration to dump backend: sustained public endpoint rate limit hits
 
 ## Near-term implementation priorities
 
-1. Add `slug`, `wikidata_qid`, `type_namespace` fields to `items` table.
-2. Wire Wikidata enrichment into `ItemController::show` when `wikidata_qid` is set.
-3. Add `/{namespace}/{slug}` route resolving through `ItemController`.
-4. Add Wikidata concept search to the item initialization/claim flow (search-as-you-type → select QID).
-5. Add `wikidata_entities` local cache table.
-6. Migrate or retire `Thing` model once `Item` covers slug + scan session tracking.
+1. Add Wikidata concept search to the item initialization/claim flow (search-as-you-type → select QID).
+2. Add `wikidata_entities` local cache table.
+3. Migrate or retire `Thing` model once `Item` covers slug + scan session tracking.

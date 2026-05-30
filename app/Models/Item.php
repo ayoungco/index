@@ -14,9 +14,24 @@ class Item extends Model
     protected $fillable = [
         'uuid',
         'name',
+        'slug',
+        'wikidata_qid',
+        'type_namespace',
         'description',
         'user_id',
     ];
+
+    public function semanticUrl(): ?string
+    {
+        if (! $this->type_namespace || ! $this->slug) {
+            return null;
+        }
+
+        return route('items.semantic.show', [
+            'namespace' => $this->type_namespace,
+            'slug' => $this->slug,
+        ]);
+    }
 
     public function creator(): BelongsTo
     {

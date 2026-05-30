@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Item;
 use App\Services\Wikidata;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -10,23 +11,45 @@ beforeEach(function () {
 
     $fake = Mockery::mock(Wikidata::class);
     $fake->shouldReceive('entityBasics')
-        ->andReturn([
-            'label' => 'Douglas Adams',
-            'desc' => 'English writer',
-            'raw' => [
-                'claims' => [
-                    'P31' => [
-                        [
-                            'mainsnak' => [
-                                'datavalue' => [
-                                    'value' => ['id' => 'Q5'],
+        ->andReturnUsing(function (string $qid): array {
+            if ($qid === 'Q629') {
+                return [
+                    'label' => 'oxygen',
+                    'desc' => 'chemical element with symbol O and atomic number 8',
+                    'raw' => [
+                        'claims' => [
+                            'P31' => [
+                                [
+                                    'mainsnak' => [
+                                        'datavalue' => [
+                                            'value' => ['id' => 'Q11344'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ];
+            }
+
+            return [
+                'label' => 'Douglas Adams',
+                'desc' => 'English writer',
+                'raw' => [
+                    'claims' => [
+                        'P31' => [
+                            [
+                                'mainsnak' => [
+                                    'datavalue' => [
+                                        'value' => ['id' => 'Q5'],
+                                    ],
                                 ],
                             ],
                         ],
                     ],
                 ],
-            ],
-        ]);
+            ];
+        });
 
     $fake->shouldReceive('sparql')
         ->andReturn([
@@ -57,4 +80,37 @@ it('loads a wikidata type route', function () {
 
 it('rejects unsupported wikidata types', function () {
     $this->get('/wd/type/not-a-real-type')->assertNotFound();
+});
+
+it('enriches an item page from its wikidata qid and derives a namespace', function () {
+    $item = Item::factory()->create([
+        'name' => 'Oxygen tank shelf 3',
+        'slug' => 'oxygen-tank-shelf-3',
+        'wikidata_qid' => 'Q629',
+        'type_namespace' => null,
+    ]);
+
+    $response = $this->get('/'.$item->uuid);
+
+    $response->assertOk();
+    $response->assertSee('oxygen');
+    $response->assertSee('Q629');
+    $response->assertSee('Q11344');
+    $response->assertSee('/element/oxygen-tank-shelf-3');
+
+    expect($item->fresh()->type_namespace)->toBe('element');
+});
+
+it('resolves item semantic urls through namespace and slug', function () {
+    $item = Item::factory()->create([
+        'name' => 'Oxygen tank shelf 3',
+        'slug' => 'oxygen-tank-shelf-3',
+        'type_namespace' => 'element',
+    ]);
+
+    $response = $this->get('/element/oxygen-tank-shelf-3');
+
+    $response->assertOk();
+    $response->assertSee($item->name);
+    $response->assertSee($item->uuid);
 });

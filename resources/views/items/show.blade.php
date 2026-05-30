@@ -1,31 +1,33 @@
 <x-layouts.app :title="$item->name">
-    <section class="terminal-shell text-sm">
+    <section class="app-shell text-sm">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <a
                 href="{{ route('items.print', ['uuid' => $item->uuid]) }}"
-                class="terminal-btn terminal-btn-accent"
+                class="app-btn app-btn"
             >
                 Print Label
             </a>
         </div>
-        <div class="terminal-panel">
-            <div class="terminal-divider grid gap-4 border-b pb-4">
+        <div class="app-panel">
+            <div class="app-divider grid gap-4 border-b pb-4">
                 @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
 
                 <p class="break-all text-xs">{{ $itemUrl }}</p>
 
                 @if ($item->description)
-                    <p class="terminal-muted max-w-3xl">{{ $item->description }}</p>
+                    <p class="app-muted max-w-3xl">{{ $item->description }}</p>
                 @endif
             </div>
 
             @if (session('status'))
-                <p class="{{ session('statusType') === 'critical' ? 'terminal-notice-critical' : 'terminal-notice' }} mt-4 font-semibold">{{ session('status') }}</p>
+                <p class="{{ session('statusType') === 'critical' ? 'app-notice' : 'app-notice' }} mt-4 font-semibold">{{ session('status') }}</p>
             @endif
 
+            @include('items.partials.wikidata', ['wikidata' => $wikidata, 'semanticUrl' => $semanticUrl])
+
             @if ($isAuthenticated)
-                <div class="terminal-divider mt-4 border p-4">
-                    <h2 class="terminal-accent text-base font-semibold">Timeline Entry</h2>
+                <div class="app-divider mt-4 border p-4">
+                    <h2 class="app-accent text-base font-semibold">Timeline Entry</h2>
 
                     @if ($canPost)
                         @php
@@ -47,87 +49,87 @@
                             >
 
                             <label class="grid gap-1">
-                                <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Comment</span>
+                                <span class="app-accent text-xs uppercase tracking-[0.16em]">Comment</span>
                                 <textarea
                                     name="comment"
                                     rows="2"
                                     maxlength="2000"
-                                    class="terminal-field resize-y"
+                                    class="app-field resize-y"
                                     placeholder="Optional timeline note"
                                 >{{ old('comment') }}</textarea>
                             </label>
 
                             <label class="grid gap-1">
-                                <span class="terminal-accent text-xs uppercase tracking-[0.16em]">Tags</span>
+                                <span class="app-accent text-xs uppercase tracking-[0.16em]">Tags</span>
                                 <input
                                     type="text"
                                     name="tags"
                                     value="{{ old('tags') }}"
                                     maxlength="500"
-                                    class="terminal-field"
+                                    class="app-field"
                                     placeholder="handoff, warehouse-a, fragile"
                                 >
-                                <span class="terminal-muted text-xs">Separate tags with commas.</span>
+                                <span class="app-muted text-xs">Separate tags with commas.</span>
                             </label>
 
                             <div class="flex flex-wrap items-center gap-2">
                                 <button
                                     id="photo-trigger-{{ $item->id }}"
                                     type="button"
-                                    class="terminal-camera-btn"
+                                    class="app-btn"
                                     aria-label="Take or choose a photo"
                                     title="Take or choose a photo"
                                 >
-                                    <span class="terminal-camera-btn__body" aria-hidden="true">
-                                        <span class="terminal-camera-btn__lens"></span>
+                                    <span class="app-camera-btn__body" aria-hidden="true">
+                                        <span class="app-camera-btn__lens"></span>
                                     </span>
                                 </button>
-                                <span id="{{ $nameId }}" class="terminal-muted text-xs">No file selected</span>
+                                <span id="{{ $nameId }}" class="app-muted text-xs">No file selected</span>
                             </div>
 
-                            <p class="terminal-muted text-xs">Upload starts automatically after selecting a photo.</p>
+                            <p class="app-muted text-xs">Upload starts automatically after selecting a photo.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
-                                    <span class="terminal-accent">Photo</span>
+                                    <span class="app-accent">Photo</span>
                                     <input
                                         type="file"
                                         name="photo"
                                         accept="image/*,.heic,.heif"
                                         capture="environment"
                                         required
-                                        class="terminal-field"
+                                        class="app-field"
                                     >
                                 </label>
                             </noscript>
 
                             @error('photo')
-                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                                <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
                             @error('comment')
-                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                                <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
                             @error('tags')
-                                <p class="terminal-notice-critical text-xs">{{ $message }}</p>
+                                <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
 
                             <div class="hidden" data-js-submit-fallback="{{ $item->id }}">
-                                <button type="submit" class="terminal-btn terminal-btn-accent">
+                                <button type="submit" class="app-btn app-btn">
                                     Add Photo
                                 </button>
                             </div>
                         </form>
                     @else
-                        <p class="terminal-muted mt-2">Verify your Auth0 email before posting timeline events.</p>
+                        <p class="app-muted mt-2">Verify your Auth0 email before posting timeline events.</p>
                     @endif
                 </div>
             @endif
 
             <div class="mt-5">
-                <h2 class="terminal-accent text-base font-semibold">Timeline</h2>
+                <h2 class="app-accent text-base font-semibold">Timeline</h2>
 
                 @if ($timeline->isEmpty())
-                    <p class="terminal-muted mt-2">No events yet.</p>
+                    <p class="app-muted mt-2">No events yet.</p>
                 @else
                     <ul class="compose-log mt-3" aria-label="Timeline log">
                         @foreach ($timeline as $event)

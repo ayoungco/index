@@ -4,26 +4,28 @@
     @include('partials.head')
 </head>
 <body>
-    <main class="terminal-shell text-sm">
-        <section class="terminal-panel">
-            <div class="terminal-divider grid gap-4 border-b pb-4">
+    <main class="app-shell text-sm">
+        <section class="app-panel">
+            <div class="app-divider grid gap-4 border-b pb-4">
                 @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
 
                 <p class="break-all text-xs">{{ $itemUrl }}</p>
 
                 @if ($item->description)
-                    <p class="terminal-muted">{{ $item->description }}</p>
+                    <p class="app-muted">{{ $item->description }}</p>
                 @endif
             </div>
 
-            <p class="terminal-muted mt-3">Public view. Log in to post timeline media.</p>
-            <a href="{{ $loginUrl }}" class="terminal-btn terminal-btn-accent mt-4">Login With Auth0</a>
+            <p class="app-muted mt-3">Public view. Log in to post timeline media.</p>
+            <a href="{{ $loginUrl }}" class="app-btn app-btn mt-4">Login With Auth0</a>
+
+            @include('items.partials.wikidata', ['wikidata' => $wikidata, 'semanticUrl' => $semanticUrl])
 
             <div class="mt-6">
-                <h2 class="terminal-accent text-base font-semibold">Timeline</h2>
+                <h2 class="app-accent text-base font-semibold">Timeline</h2>
 
                 @if ($timeline->isEmpty())
-                    <p class="terminal-muted mt-2">No events yet.</p>
+                    <p class="app-muted mt-2">No events yet.</p>
                 @else
                     <ul class="compose-log mt-3" aria-label="Timeline log">
                         @foreach ($timeline as $event)

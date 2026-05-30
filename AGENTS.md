@@ -1,1 +1,3 @@
 - optimize for fast page loads
+- prefer extremely simple controls and interfaces
+- inherit browser light/dark mode; light is black on full white, dark is pure white on black

@@ -3,131 +3,37 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen">
+    <body>
         @php($user = auth()->user())
 
-        <flux:sidebar sticky stashable class="terminal-surface terminal-divider border-e">
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+        <header class="border-b border-current">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+                <a href="{{ route('dashboard') }}" class="font-bold no-underline">
+                    {{ config('app.name', 'Index') }}
+                </a>
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                <x-app-logo />
-            </a>
+                <nav class="flex flex-wrap gap-3 text-sm">
+                    <a href="{{ route('dashboard') }}">Dashboard</a>
+                    <a href="{{ route('things.index') }}">Things</a>
+                    <a href="{{ route('properties.index') }}">Properties</a>
+                    <a href="{{ route('relations.index') }}">Relations</a>
+                    <a href="{{ route('messages.index') }}">Messages</a>
+                </nav>
 
-            <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                </flux:navlist.group>
+                <div class="ms-auto flex flex-wrap items-center gap-3 text-sm">
+                    @if ($user)
+                        <span>{{ $user->email }}</span>
+                        <a href="{{ route('settings.profile') }}">Settings</a>
+                        <a href="{{ url('/logout') }}">Log Out</a>
+                    @else
+                        <a href="{{ route('login') }}">Log in</a>
+                    @endif
+                </div>
+            </div>
+        </header>
 
-                <flux:navlist.group :heading="__('Models')" class="grid">
-                    <flux:navlist.item icon="cube" :href="route('things.index')" :current="request()->routeIs('things.*')" wire:navigate>{{ __('Things') }}</flux:navlist.item>
-                    <flux:navlist.item icon="tag" :href="route('properties.index')" :current="request()->routeIs('properties.*')" wire:navigate>{{ __('Properties') }}</flux:navlist.item>
-                    <flux:navlist.item icon="link" :href="route('relations.index')" :current="request()->routeIs('relations.*')" wire:navigate>{{ __('Relations') }}</flux:navlist.item>
-                    <flux:navlist.item icon="chat-bubble-left-right" :href="route('messages.index')" :current="request()->routeIs('messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
-                </flux:navlist.group>
-            </flux:navlist>
-
-            <flux:spacer />
-
-            <!-- Desktop User Menu -->
-            @if ($user)
-                <flux:dropdown class="hidden lg:block" position="bottom" align="start">
-                    <flux:profile
-                        :name="$user->name"
-                        :initials="$user->initials()"
-                        icon:trailing="chevrons-up-down"
-                    />
-
-                    <flux:menu class="w-[220px]">
-                        <flux:menu.radio.group>
-                            <div class="p-0 text-sm font-normal">
-                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                    <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                        <span
-                                            class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
-                                        >
-                                            {{ $user->initials() }}
-                                        </span>
-                                    </span>
-
-                                    <div class="grid flex-1 text-start text-sm leading-tight">
-                                        <span class="truncate font-semibold">{{ $user->name }}</span>
-                                        <span class="truncate text-xs">{{ $user->email }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </flux:menu.radio.group>
-
-                        <flux:menu.separator />
-
-                        <flux:menu.radio.group>
-                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                        </flux:menu.radio.group>
-
-                        <flux:menu.separator />
-
-                        <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Log Out') }}
-                        </flux:menu.item>
-                    </flux:menu>
-                </flux:dropdown>
-            @else
-                <a href="{{ route('login') }}" class="terminal-btn hidden lg:inline-flex">Log in</a>
-            @endif
-        </flux:sidebar>
-
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-            <flux:spacer />
-
-            @if ($user)
-                <flux:dropdown position="top" align="end">
-                    <flux:profile
-                        :initials="$user->initials()"
-                        icon-trailing="chevron-down"
-                    />
-
-                    <flux:menu>
-                        <flux:menu.radio.group>
-                            <div class="p-0 text-sm font-normal">
-                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                    <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                        <span
-                                            class="terminal-divider flex h-full w-full items-center justify-center rounded-lg border"
-                                        >
-                                            {{ $user->initials() }}
-                                        </span>
-                                    </span>
-
-                                    <div class="grid flex-1 text-start text-sm leading-tight">
-                                        <span class="truncate font-semibold">{{ $user->name }}</span>
-                                        <span class="truncate text-xs">{{ $user->email }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </flux:menu.radio.group>
-
-                        <flux:menu.separator />
-
-                        <flux:menu.radio.group>
-                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                        </flux:menu.radio.group>
-
-                        <flux:menu.separator />
-
-                        <flux:menu.item :href="url('/logout')" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Log Out') }}
-                        </flux:menu.item>
-                    </flux:menu>
-                </flux:dropdown>
-            @else
-                <a href="{{ route('login') }}" class="terminal-btn">Log in</a>
-            @endif
-        </flux:header>
-
-        {{ $slot }}
-
-        @fluxScripts
+        <main>
+            {{ $slot }}
+        </main>
     </body>
 </html>

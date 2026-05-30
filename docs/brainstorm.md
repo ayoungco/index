@@ -6,10 +6,10 @@ Raw ideas, sorted by implementation leverage — things closest to the core prod
 
 ## Core loop (do these next)
 
-- [ ] Add `slug`, `wikidata_qid`, `type_namespace` to `items` table
-- [ ] Wire Wikidata enrichment into item show page when `wikidata_qid` is set
+- [x] Add `slug`, `wikidata_qid`, `type_namespace` to `items` table
+- [x] Wire Wikidata enrichment into item show page when `wikidata_qid` is set
 - [ ] Add Wikidata concept search to the initialization/claim flow (search-as-you-type → select a QID to categorize the object)
-- [ ] `/{namespace}/{slug}` route resolving through ItemController (e.g., `/element/oxygen-tank-1`)
+- [x] `/{namespace}/{slug}` route resolving through ItemController (e.g., `/element/oxygen-tank-1`)
 - [ ] Add `wikidata_entities` local cache table to reduce public API calls
 - [ ] Large omnipresent search/command bar — AJAX, fuzzy, character-by-character; emulates CLI responsiveness
 - [ ] Breadcrumbs on each item page showing hierarchical context: `index > element > oxygen > oxygen-tank-shelf-3`

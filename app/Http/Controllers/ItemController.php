@@ -8,6 +8,7 @@ use App\Models\ItemEvent;
 use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
+use App\Services\Wikidata;
 use App\Support\AuthRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class ItemController extends Controller
         private readonly ImageCompressionService $imageCompression,
         private readonly QrVerificationService $qrVerification,
         private readonly QrCodeRenderService $qrRenderer,
+        private readonly Wikidata $wikidata,
     ) {}
 
     public function show(Request $request, string $uuid): View
@@ -54,12 +56,15 @@ class ItemController extends Controller
             $item->load(['events.author', 'accesses.user']);
 
             $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
+            $wikidata = $this->wikidataSummaryFor($item);
 
             return view('items.public', [
                 'item' => $item,
                 'itemUrl' => $itemUrl,
+                'semanticUrl' => $item->semanticUrl(),
                 'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
                 'timeline' => $this->timelineFor($item),
+                'wikidata' => $wikidata,
                 'loginUrl' => route('login', ['returnTo' => $returnToUrl], true),
             ]);
         }
@@ -68,15 +73,28 @@ class ItemController extends Controller
         $item->load(['events.author', 'accesses.user']);
 
         $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
+        $wikidata = $this->wikidataSummaryFor($item);
 
         return view('items.show', [
             'item' => $item,
             'itemUrl' => $itemUrl,
+            'semanticUrl' => $item->semanticUrl(),
             'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             'isAuthenticated' => true,
             'canPost' => (bool) $user->email_verified_at,
             'timeline' => $this->timelineFor($item),
+            'wikidata' => $wikidata,
         ]);
+    }
+
+    public function showBySemantic(Request $request, string $namespace, string $slug): View
+    {
+        $item = Item::query()
+            ->where('type_namespace', $namespace)
+            ->where('slug', urldecode($slug))
+            ->firstOrFail();
+
+        return $this->show($request, $item->uuid);
     }
 
     public function initialize(Request $request, string $uuid): RedirectResponse
@@ -90,13 +108,18 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
             'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
             'comment' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $name = filled($validated['name'] ?? null) ? $validated['name'] : $uuid;
+
         $item = Item::query()->create([
             'uuid' => $uuid,
-            'name' => filled($validated['name'] ?? null) ? $validated['name'] : $uuid,
+            'name' => $name,
+            'slug' => $this->uniqueSlug($name),
+            'wikidata_qid' => $validated['wikidata_qid'] ?? null,
             'description' => $validated['description'] ?? null,
             'user_id' => $request->user()->id,
         ]);
@@ -133,6 +156,7 @@ class ItemController extends Controller
                 'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
                 'name' => ['nullable', 'string', 'max:255'],
                 'description' => ['nullable', 'string', 'max:5000'],
+                'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
             ]);
 
             $uuid = (string) Str::uuid();
@@ -145,6 +169,8 @@ class ItemController extends Controller
             $item = Item::query()->create([
                 'uuid' => $uuid,
                 'name' => $name,
+                'slug' => $this->uniqueSlug($name),
+                'wikidata_qid' => $validated['wikidata_qid'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'user_id' => $request->user()->id,
             ]);
@@ -334,6 +360,102 @@ class ItemController extends Controller
             ->merge($events)
             ->sortByDesc('occurred_at')
             ->values();
+    }
+
+    private function uniqueSlug(string $name): string
+    {
+        $base = Str::slug($name);
+
+        if ($base === '') {
+            $base = 'item';
+        }
+
+        $slug = $base;
+        $suffix = 2;
+
+        while (Item::query()->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * @return array{qid:string,label:string,description:?string,instances:array<int, string>}|null
+     */
+    private function wikidataSummaryFor(Item $item): ?array
+    {
+        if (! $item->wikidata_qid) {
+            return null;
+        }
+
+        try {
+            $basics = $this->wikidata->entityBasics($item->wikidata_qid);
+        } catch (\Throwable $exception) {
+            logger()->warning('Failed to load Wikidata summary for item.', [
+                'item_id' => $item->id,
+                'wikidata_qid' => $item->wikidata_qid,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        $instances = collect($basics['raw']['claims']['P31'] ?? [])
+            ->map(function (array $claim): ?string {
+                $value = $claim['mainsnak']['datavalue']['value'] ?? null;
+
+                return is_array($value) && isset($value['id']) ? $value['id'] : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        if (! $item->type_namespace) {
+            $namespace = $this->namespaceFromInstances($instances);
+
+            if ($namespace) {
+                $item->forceFill(['type_namespace' => $namespace])->saveQuietly();
+            }
+        }
+
+        return [
+            'qid' => $item->wikidata_qid,
+            'label' => $basics['label'],
+            'description' => $basics['desc'],
+            'instances' => $instances,
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $instances
+     */
+    private function namespaceFromInstances(array $instances): ?string
+    {
+        $map = [
+            'Q11344' => 'element',
+            'Q79529' => 'compound',
+            'Q214609' => 'material',
+            'Q2424752' => 'product',
+            'Q1183543' => 'device',
+            'Q39546' => 'tool',
+            'Q11436' => 'aircraft',
+            'Q16521' => 'taxon',
+            'Q1656682' => 'event',
+            'Q43229' => 'organization',
+            'Q5' => 'person',
+            'Q571' => 'book',
+            'Q515' => 'city',
+        ];
+
+        foreach ($instances as $qid) {
+            if (isset($map[$qid])) {
+                return $map[$qid];
+            }
+        }
+
+        return $instances === [] ? null : 'thing';
     }
 
     private function browserName(string $userAgent): string
