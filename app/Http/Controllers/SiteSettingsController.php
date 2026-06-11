@@ -29,6 +29,9 @@ class SiteSettingsController extends Controller
             'scanner_tagline' => ['nullable', 'string', 'max:500'],
             'label_name' => ['required', 'string', 'max:120'],
             'label_tagline' => ['nullable', 'string', 'max:500'],
+            'primary_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'background_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'highlight_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'logo' => ['nullable', 'image', 'max:4096'],
             'remove_logo' => ['nullable', 'boolean'],
         ]);
@@ -60,6 +63,9 @@ class SiteSettingsController extends Controller
             'scanner_tagline' => $validated['scanner_tagline'] ?? null,
             'label_name' => $validated['label_name'],
             'label_tagline' => $validated['label_tagline'] ?? null,
+            'primary_color' => $validated['primary_color'],
+            'background_color' => $validated['background_color'],
+            'highlight_color' => $validated['highlight_color'],
             'logo_path' => $logoPath,
         ]);
 

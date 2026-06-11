@@ -5,27 +5,30 @@
 
 @layer base {
     :root {
-        color-scheme: light dark;
+        --app-primary: #000000;
+        --app-background: #ffffff;
+        --app-highlight: #ff4f00;
+        color-scheme: light;
     }
 
     html {
-        background: #ffffff;
-        color: #000000;
+        background: var(--app-background);
+        color: var(--app-primary);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
     }
 
     body {
         min-height: 100vh;
         margin: 0;
-        background: #ffffff;
-        color: #000000;
+        background: var(--app-background);
+        color: var(--app-primary);
     }
 
     @media (prefers-color-scheme: dark) {
-        html,
-        body {
-            background: #000000;
-            color: #ffffff;
+        html[data-theme='system'] {
+            --app-primary: #ffffff;
+            --app-background: #000000;
+            color-scheme: dark;
         }
     }
 
@@ -73,7 +76,7 @@
     }
 
     .app-accent {
-        color: inherit;
+        color: var(--app-highlight);
         font-weight: 700;
     }
 
@@ -92,16 +95,8 @@
 
     .app-btn:hover,
     .app-btn:focus {
-        background: #eeeeee;
-        color: #000000;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .app-btn:hover,
-        .app-btn:focus {
-            background: #ffffff;
-            color: #000000;
-        }
+        border-color: var(--app-highlight);
+        color: var(--app-highlight);
     }
 
     .app-btn:disabled {
@@ -118,12 +113,12 @@
     }
 
     .app-field:focus {
-        outline: 2px solid currentColor;
+        outline: 2px solid var(--app-highlight);
         outline-offset: 1px;
     }
 
     .app-notice {
-        border: 1px solid currentColor;
+        border: 1px solid var(--app-highlight);
         padding: 0.65rem;
         background: transparent;
         color: inherit;
@@ -159,5 +154,14 @@
     .logo-adaptive {
         max-height: 4rem;
         width: auto;
+    }
+
+    .app-color-field {
+        width: 3rem;
+        height: 2.25rem;
+        padding: 0;
+        border: 1px solid currentColor;
+        background: transparent;
+        cursor: pointer;
     }
 }

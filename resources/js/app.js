@@ -23,3 +23,14 @@ document.addEventListener('change', (event) => {
         input.reportValidity();
     }
 }, true);
+
+document.addEventListener('input', (event) => {
+    const input = event.target.closest?.('[data-theme-color]');
+
+    if (! input) {
+        return;
+    }
+
+    document.documentElement.dataset.theme = 'custom';
+    document.documentElement.style.setProperty(input.dataset.themeColor, input.value);
+});

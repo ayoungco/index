@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Schema;
 
 class SiteSettings
 {
+    private const DEFAULT_PRIMARY_COLOR = '#000000';
+
+    private const DEFAULT_BACKGROUND_COLOR = '#ffffff';
+
+    private const DEFAULT_HIGHLIGHT_COLOR = '#ff4f00';
+
     private const WRITABLE_KEYS = [
         'site_name',
         'site_url',
@@ -16,6 +22,9 @@ class SiteSettings
         'scanner_tagline',
         'label_name',
         'label_tagline',
+        'primary_color',
+        'background_color',
+        'highlight_color',
     ];
 
     private ?array $settings = null;
@@ -36,6 +45,12 @@ class SiteSettings
 
         $settings = array_merge($this->defaults(), $stored);
         $settings['site_url'] = $this->normalizeUrl($settings['site_url'] ?? null) ?? config('app.url');
+        $settings['primary_color'] = $this->normalizeColor($settings['primary_color'] ?? null, self::DEFAULT_PRIMARY_COLOR);
+        $settings['background_color'] = $this->normalizeColor($settings['background_color'] ?? null, self::DEFAULT_BACKGROUND_COLOR);
+        $settings['highlight_color'] = $this->normalizeColor($settings['highlight_color'] ?? null, self::DEFAULT_HIGHLIGHT_COLOR);
+        $settings['theme_is_default'] = $settings['primary_color'] === self::DEFAULT_PRIMARY_COLOR
+            && $settings['background_color'] === self::DEFAULT_BACKGROUND_COLOR
+            && $settings['highlight_color'] === self::DEFAULT_HIGHLIGHT_COLOR;
         $settings['logo_url'] = ($settings['logo_path'] ?? null)
             ? asset('storage/'.$settings['logo_path'])
             : asset('index-h.svg');
@@ -105,6 +120,10 @@ class SiteSettings
             'scanner_tagline' => 'Scan an item UUID, post photos from camera, and keep the canonical timeline in one place.',
             'label_name' => 'Asset Label',
             'label_tagline' => 'Scan to access the canonical item record and timeline.',
+            'primary_color' => self::DEFAULT_PRIMARY_COLOR,
+            'background_color' => self::DEFAULT_BACKGROUND_COLOR,
+            'highlight_color' => self::DEFAULT_HIGHLIGHT_COLOR,
+            'theme_is_default' => true,
         ];
     }
 
@@ -115,5 +134,12 @@ class SiteSettings
         }
 
         return rtrim($url, '/');
+    }
+
+    private function normalizeColor(mixed $color, string $fallback): string
+    {
+        return is_string($color) && preg_match('/^#[0-9a-f]{6}$/i', $color)
+            ? strtolower($color)
+            : $fallback;
     }
 }

@@ -2,7 +2,7 @@
     <section class="w-full">
         @include('partials.settings-heading')
 
-        <x-settings.layout :heading="__('Site Settings')" :subheading="__('Placeholder admin controls for public branding and scanner copy')">
+        <x-settings.layout :heading="__('Site Settings')" :subheading="__('Public identity, copy, and colors')">
             @if (session('status'))
                 <div class="app-notice mb-6 text-sm">
                     {{ session('status') }}
@@ -62,6 +62,29 @@
                     @error('logo')<p class="text-sm text-rose-400">{{ $message }}</p>@enderror
                     @error('remove_logo')<p class="text-sm text-rose-400">{{ $message }}</p>@enderror
                 </div>
+
+                <fieldset class="space-y-3 border border-current p-3">
+                    <legend class="px-1 text-sm font-medium">{{ __('Colors') }}</legend>
+                    <p class="app-muted text-sm">{{ __('Changes preview immediately. The default palette follows browser light and dark mode.') }}</p>
+
+                    @foreach ([
+                        'primary_color' => ['Primary', '--app-primary'],
+                        'background_color' => ['Background', '--app-background'],
+                        'highlight_color' => ['Highlight', '--app-highlight'],
+                    ] as $name => [$label, $property])
+                        <label class="flex items-center justify-between gap-4 text-sm">
+                            <span>{{ __($label) }}</span>
+                            <input
+                                class="app-color-field"
+                                name="{{ $name }}"
+                                type="color"
+                                value="{{ old($name, $defaults[$name]) }}"
+                                data-theme-color="{{ $property }}"
+                            >
+                        </label>
+                        @error($name)<p class="text-sm app-accent">{{ $message }}</p>@enderror
+                    @endforeach
+                </fieldset>
 
                 <div class="flex items-center gap-4">
                     <button class="app-btn" type="submit">{{ __('Save') }}</button>

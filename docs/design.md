@@ -138,7 +138,9 @@ Trigger for migration to dump backend: sustained public endpoint rate limit hits
 
 - **Mobile-first** as a scanner tool. The landing page after a QR scan must be instantly readable on a phone.
 - **Desktop** is a search and reference tool — large command-bar search, fast AJAX results.
-- **Aesthetic:** minimal, utilitarian, bold terminal feel. Influenced by Atomic Heart, Deus Ex: Mankind Divided, and Cyberpunk 2077 UI.
+- **Aesthetic:** fast, spartan, and utilitarian. Layout, typography, and controls stay deliberately fixed; administrators can configure only primary, background, and highlight colors.
+- **Theme defaults:** black on white with International Orange (`#ff4f00`) as the highlight. The untouched default follows browser light/dark mode and becomes white on black in dark mode.
+- **Archive:** previous faux CRT and themed interface studies are retained under `docs/examples/` and `docs/context/`, outside the application runtime.
 - **QR label:** brutally simple — index logo, QR code, inverted bold title block. Shared Blade partial; print and item page use the same partial identically.
 - **Breadcrumbs:** each item page shows its hierarchical context, e.g., `index > element > oxygen > oxygen-tank-shelf-3`.
 
