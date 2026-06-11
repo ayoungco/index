@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Thing;
+use App\Services\UploadedImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,10 @@ use Illuminate\Support\Str;
 
 class ThingController extends Controller
 {
+    public function __construct(
+        private readonly UploadedImageStorage $uploadedImageStorage,
+    ) {}
+
     /**
      * Display a public view of a thing by slug.
      */
@@ -44,6 +49,7 @@ class ThingController extends Controller
     public function index()
     {
         $things = Thing::all();
+
         return view('things.index', compact('things'));
     }
 
@@ -64,6 +70,7 @@ class ThingController extends Controller
             // Validation rules
         ]);
         $thing = Thing::create($validated);
+
         return redirect()->route('things.show', $thing);
     }
 
@@ -89,7 +96,7 @@ class ThingController extends Controller
             'photo' => ['required', 'image', 'max:10240'],
         ]);
 
-        $storedPath = $validated['photo']->store('thing-scans', 'public');
+        $storedPath = $this->uploadedImageStorage->storeOriginal($validated['photo'], 'thing-scans');
 
         $this->appendThingSessionHistory($request, $thing->id, [
             'type' => 'scan.photo_added',
@@ -127,6 +134,7 @@ class ThingController extends Controller
             // Validation rules
         ]);
         $thing->update($validated);
+
         return redirect()->route('things.show', $thing);
     }
 
@@ -136,6 +144,7 @@ class ThingController extends Controller
     public function destroy(Thing $thing)
     {
         $thing->delete();
+
         return redirect()->route('things.index');
     }
 

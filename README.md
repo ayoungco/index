@@ -27,6 +27,42 @@
 
 See docs/INSTALL.md for installation instructions.
 
+## Laravel Forge storage
+
+Uploaded images are processed into JPEGs and written to:
+
+```text
+storage/app/public/items/{uuid}/{image-uuid}.jpg
+```
+
+The public `/storage/...` URL requires Laravel's storage link. Run this from the
+Forge site directory after each deployment:
+
+```bash
+php artisan storage:link
+```
+
+A typical Forge deployment script should also include:
+
+```bash
+chmod -R ug+rwX storage bootstrap/cache
+php artisan storage:link
+php artisan config:clear
+```
+
+Verify the link, saved file, and web-server access with:
+
+```bash
+ls -ld storage/app/public public/storage
+readlink -f public/storage
+find storage/app/public/items -type f | tail -n 5
+curl -I https://index.ayoung.co/storage/items/{uuid}/{image-uuid}.jpg
+```
+
+`public/storage` must resolve to the current site's `storage/app/public`
+directory. A missing or stale link causes uploaded files to return HTTP 404 even
+when image processing and storage succeeded.
+
 ## Use cases
 
 - Upcycling and repurposing materials

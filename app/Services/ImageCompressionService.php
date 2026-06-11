@@ -5,6 +5,8 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\ImageManager;
 use RuntimeException;
 
 class ImageCompressionService
@@ -18,7 +20,7 @@ class ImageCompressionService
         $filename = Str::uuid().'.jpg';
         $relativePath = $directory.'/'.$filename;
 
-        if (class_exists(\Intervention\Image\ImageManager::class)) {
+        if (class_exists(ImageManager::class)) {
             $manager = $this->buildInterventionManager();
 
             if ($manager) {
@@ -26,7 +28,9 @@ class ImageCompressionService
                 $image->scaleDown(width: 1080);
                 $encoded = $image->toJpeg(75);
 
-                $disk->put($relativePath, (string) $encoded);
+                if (! $disk->put($relativePath, (string) $encoded)) {
+                    throw new RuntimeException('Failed to store compressed image.');
+                }
 
                 return $relativePath;
             }
@@ -44,7 +48,9 @@ class ImageCompressionService
 
             $image->setImageFormat('jpeg');
             $image->setImageCompressionQuality(75);
-            $disk->put($relativePath, (string) $image->getImageBlob());
+            if (! $disk->put($relativePath, (string) $image->getImageBlob())) {
+                throw new RuntimeException('Failed to store compressed image.');
+            }
             $image->clear();
             $image->destroy();
 
@@ -84,23 +90,25 @@ class ImageCompressionService
             throw new RuntimeException('Failed to encode compressed image.');
         }
 
-        $disk->put($relativePath, $jpegData);
+        if (! $disk->put($relativePath, $jpegData)) {
+            throw new RuntimeException('Failed to store compressed image.');
+        }
 
         return $relativePath;
     }
 
-    private function buildInterventionManager(): ?\Intervention\Image\ImageManager
+    private function buildInterventionManager(): ?ImageManager
     {
-        if (! class_exists(\Intervention\Image\ImageManager::class)) {
+        if (! class_exists(ImageManager::class)) {
             return null;
         }
 
-        if (class_exists(\Intervention\Image\Drivers\Imagick\Driver::class)) {
-            return new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Imagick\Driver);
+        if (extension_loaded('imagick') && class_exists(\Imagick::class) && class_exists(Driver::class)) {
+            return new ImageManager(new Driver);
         }
 
-        if (class_exists(\Intervention\Image\Drivers\Gd\Driver::class)) {
-            return new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
+        if (extension_loaded('gd') && class_exists(\Intervention\Image\Drivers\Gd\Driver::class)) {
+            return new ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
         }
 
         return null;

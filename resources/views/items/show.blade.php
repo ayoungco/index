@@ -45,6 +45,8 @@
                                 accept="image/*,.heic,.heif"
                                 capture="environment"
                                 required
+                                data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
+                                data-max-label="{{ \App\Support\UploadLimits::label() }}"
                                 class="sr-only"
                             >
 
@@ -87,7 +89,7 @@
                                 <span id="{{ $nameId }}" class="app-muted text-xs">No file selected</span>
                             </div>
 
-                            <p class="app-muted text-xs">Upload starts automatically after selecting a photo.</p>
+                            <p class="app-muted text-xs">Upload starts automatically. Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -106,6 +108,7 @@
                             @error('photo')
                                 <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
+                            <p class="app-notice hidden text-xs" data-upload-error></p>
                             @error('comment')
                                 <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
@@ -204,6 +207,10 @@
                         return;
                     }
 
+                    if (! picker.checkValidity()) {
+                        return;
+                    }
+
                     if (trigger) {
                         trigger.disabled = true;
                         trigger.setAttribute('aria-label', 'Uploading photo');
@@ -211,7 +218,7 @@
                         trigger.classList.add('is-uploading');
                     }
 
-                    form.submit();
+                    form.requestSubmit();
                 });
             };
         </script>

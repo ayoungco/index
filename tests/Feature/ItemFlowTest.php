@@ -136,6 +136,77 @@ test('verified users can create a new item from only a photo', function () {
     Storage::disk('public')->assertExists($event->image_path);
 });
 
+test('the image processor writes a generated jpeg to the public disk', function () {
+    Storage::fake('public');
+
+    $uuid = (string) Str::uuid();
+    $photo = UploadedFile::fake()->image('source.png', 1200, 800);
+
+    $path = app(ImageCompressionService::class)->compressAndStore($photo, $uuid);
+
+    expect($path)->toStartWith('items/'.$uuid.'/')->toEndWith('.jpg');
+    Storage::disk('public')->assertExists($path);
+    expect(Storage::disk('public')->size($path))->toBeGreaterThan(0);
+});
+
+test('the original-image fallback always stores an explicit extension', function () {
+    Storage::fake('public');
+
+    $item = Item::factory()->create();
+    $user = $item->creator;
+
+    $this->mock(ImageCompressionService::class, function ($mock) {
+        $mock->shouldReceive('compressAndStore')
+            ->once()
+            ->andThrow(new RuntimeException('Decoder unavailable.'));
+    });
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->post(route('items.events.store', ['uuid' => $item->uuid]), [
+        'photo' => UploadedFile::fake()->image('fallback.jpeg'),
+    ]);
+
+    $event = $item->events()->sole();
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    expect($event->image_path)->toMatch('/^items\/'.$item->uuid.'\/[0-9a-f-]+\.jpg$/');
+    Storage::disk('public')->assertExists($event->image_path);
+});
+
+test('oversized timeline photos return a visible validation error', function () {
+    $item = Item::factory()->create();
+    $user = $item->creator;
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this
+        ->from(route('items.show', ['uuid' => $item->uuid]))
+        ->post(route('items.events.store', ['uuid' => $item->uuid]), [
+            'photo' => UploadedFile::fake()->create('large.jpg', 3072, 'image/jpeg'),
+        ]);
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    $response->assertSessionHasErrors('photo');
+    expect($item->events()->count())->toBe(0);
+});
+
+test('requests over the PHP post limit return a visible upload error', function () {
+    $item = Item::factory()->create();
+    $user = $item->creator;
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this
+        ->from(route('items.show', ['uuid' => $item->uuid]))
+        ->withServerVariables(['CONTENT_LENGTH' => 9 * 1024 * 1024])
+        ->post(route('items.events.store', ['uuid' => $item->uuid]));
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    $response->assertSessionHas('status', 'Upload rejected because the request was larger than the server allows. Choose a smaller photo and try again.');
+    $response->assertSessionHas('statusType', 'critical');
+});
+
 test('authenticated item access is recorded on the timeline', function () {
     $item = Item::factory()->create();
     $user = $item->creator;

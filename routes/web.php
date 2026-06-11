@@ -1,20 +1,24 @@
 <?php
 
+use App\Http\Controllers\Auth\PostLoginRedirectController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\WikidataThingController;
-use App\Http\Controllers\WikidataTypeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
-use App\Http\Controllers\SiteSettingsController;
-use App\Http\Controllers\Auth\PostLoginRedirectController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\SiteSettingsController;
 use App\Http\Controllers\ThingController;
+use App\Http\Controllers\WikidataThingController;
+use App\Http\Controllers\WikidataTypeController;
 use App\Models\Item;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
     return view('welcome');
 })->name('home');
 

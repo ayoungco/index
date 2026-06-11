@@ -8,8 +8,10 @@ use App\Models\ItemEvent;
 use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
+use App\Services\UploadedImageStorage;
 use App\Services\Wikidata;
 use App\Support\AuthRedirect;
+use App\Support\UploadLimits;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -26,6 +28,7 @@ class ItemController extends Controller
         private readonly QrVerificationService $qrVerification,
         private readonly QrCodeRenderService $qrRenderer,
         private readonly Wikidata $wikidata,
+        private readonly UploadedImageStorage $uploadedImageStorage,
     ) {}
 
     public function show(Request $request, string $uuid): View
@@ -109,7 +112,7 @@ class ItemController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
-            'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+            'photo' => $this->photoRules(),
             'comment' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -131,7 +134,7 @@ class ItemController extends Controller
                 'uuid' => $uuid,
                 'error' => $exception->getMessage(),
             ]);
-            $relativePath = $validated['photo']->store('items/'.$uuid, 'public');
+            $relativePath = $this->uploadedImageStorage->storeOriginal($validated['photo'], 'items/'.$uuid);
         }
 
         ItemEvent::query()->create([
@@ -153,7 +156,7 @@ class ItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+                'photo' => $this->photoRules(),
                 'name' => ['nullable', 'string', 'max:255'],
                 'description' => ['nullable', 'string', 'max:5000'],
                 'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
@@ -213,7 +216,7 @@ class ItemController extends Controller
                 ->firstOrFail();
 
             $validated = $request->validate([
-                'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif', 'max:30720'],
+                'photo' => $this->photoRules(),
                 'comment' => ['nullable', 'string', 'max:2000'],
                 'tags' => ['nullable', 'string', 'max:500'],
             ]);
@@ -256,6 +259,8 @@ class ItemController extends Controller
                 ->route('items.show', ['uuid' => $uuid])
                 ->with('status', 'Photo added.')
                 ->with('statusType', 'notice');
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Throwable $exception) {
             logger()->error('Failed to add photo event.', [
                 'uuid' => $uuid,
@@ -294,8 +299,18 @@ class ItemController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return $photo->store('items/'.$uuid, 'public');
+            return $this->uploadedImageStorage->storeOriginal($photo, 'items/'.$uuid);
         }
+    }
+
+    private function photoRules(): array
+    {
+        return [
+            'required',
+            'file',
+            'mimetypes:image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,image/gif',
+            'max:'.UploadLimits::maxKilobytes(),
+        ];
     }
 
     private function recordAccess(Request $request, Item $item): void

@@ -23,9 +23,11 @@
                             accept="image/*,.heic,.heif"
                             capture="environment"
                             required
+                            data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
+                            data-max-label="{{ \App\Support\UploadLimits::label() }}"
                             class="app-field"
                         >
-                        <span class="app-muted text-xs">Required. Take or choose a photo to create an object before you attach its QR label.</span>
+                        <span class="app-muted text-xs">Required. Maximum {{ \App\Support\UploadLimits::label() }}.</span>
                     </label>
 
                     <label class="grid gap-1">
@@ -67,6 +69,7 @@
                     @error('photo')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
+                    <p class="app-notice hidden text-xs" data-upload-error></p>
                     @error('name')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror

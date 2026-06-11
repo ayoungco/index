@@ -29,6 +29,8 @@
                         accept="image/*,.heic,.heif"
                         capture="environment"
                         required
+                        data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
+                        data-max-label="{{ \App\Support\UploadLimits::label() }}"
                         class="sr-only"
                     >
 
@@ -46,6 +48,7 @@
                         </button>
                         <span id="{{ $nameId }}" class="app-muted">No photo selected</span>
                     </div>
+                    <p class="app-muted text-xs">Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
                     <div id="init-fields" class="hidden grid gap-4">
                         <label class="grid gap-1">
@@ -92,6 +95,7 @@
                     @error('photo')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
+                    <p class="app-notice hidden text-xs" data-upload-error></p>
                     @error('name')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
