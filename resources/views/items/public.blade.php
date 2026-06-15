@@ -30,19 +30,14 @@
                     <ul class="compose-log mt-3" aria-label="Timeline log">
                         @foreach ($timeline as $event)
                             @php
-                                $source = $event['type'] === 'photo' ? 'camera' : 'index';
-                                $sourceClass = $event['type'] === 'photo'
-                                    ? 'compose-log__source--camera'
-                                    : 'compose-log__source--index';
                                 $message = trim(collect([
                                     $event['title'],
-                                    $event['actor'] ? 'by '.$event['actor'] : null,
                                     $event['comment'] ?: null,
                                 ])->filter()->implode(' | '));
                             @endphp
                             <li class="compose-log__line {{ $event['image_url'] ? 'compose-log__line--media' : '' }}">
                                 <div class="compose-log__meta">
-                                    <span class="compose-log__source {{ $sourceClass }}">{{ $source }}</span>
+                                    <span class="compose-log__source">{{ $event['actor'] }}</span>
                                     <span class="compose-log__pipe">|</span>
                                     <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
                                         {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
@@ -50,9 +45,12 @@
                                     <span class="compose-log__message">{{ $message }}</span>
                                 </div>
                                 @if ($event['image_url'])
-                                    <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
-                                        <img src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
-                                    </a>
+                                    <details class="mt-2" data-timeline-image>
+                                        <summary class="cursor-pointer">Show image</summary>
+                                        <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
+                                            <img data-src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
+                                        </a>
+                                    </details>
                                 @endif
                                 @if (! empty($event['tags']))
                                     <div class="compose-log__tags" aria-label="Tags">
@@ -68,5 +66,17 @@
             </div>
         </section>
     </main>
+    <script>
+        document.querySelectorAll('[data-timeline-image]').forEach((details) => {
+            details.addEventListener('toggle', () => {
+                const image = details.querySelector('img[data-src]');
+
+                if (details.open && image) {
+                    image.src = image.dataset.src;
+                    image.removeAttribute('data-src');
+                }
+            }, { once: true });
+        });
+    </script>
 </body>
 </html>

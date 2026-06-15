@@ -34,16 +34,21 @@ class ItemAccess extends Model
     public function actorLabel(): string
     {
         if ($this->user) {
-            return $this->user->name;
+            return $this->user->displayLabel();
         }
 
+        return 'Anonymous';
+    }
+
+    public function accessDescription(): string
+    {
         $location = trim(implode(', ', array_filter([
             $this->city ?: 'unknown city',
             $this->country ?: $this->country_code ?: 'unknown country',
         ])));
 
         return sprintf(
-            'anonymous user from %s using %s',
+            'from %s using %s',
             $location,
             $this->browser ?: 'unknown browser',
         );

@@ -59,6 +59,11 @@ class User extends Authenticatable
             ->implode('');
     }
 
+    public function displayLabel(): string
+    {
+        return filled($this->name) ? $this->name : $this->email;
+    }
+
     /**
      * Get the messages for the user.
      */

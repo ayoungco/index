@@ -28,7 +28,7 @@ test('guest sees login prompt for unknown uuid', function () {
     $response->assertSessionHas('auth.scanned_item_url', $expectedReturnTo);
 });
 
-test('guest sees timeline thumbnails and latest image on label', function () {
+test('guest sees timeline images behind an on-demand disclosure', function () {
     $item = Item::factory()->create();
     $item->events()->create([
         'user_id' => $item->user_id,
@@ -44,7 +44,9 @@ test('guest sees timeline thumbnails and latest image on label', function () {
     $response->assertSee(route('items.show', ['uuid' => $item->uuid], true));
     $response->assertSee('Timeline');
     $response->assertSee('Shelf check complete.');
-    $response->assertSee(Storage::disk('public')->url('items/'.$item->uuid.'/photo.jpg'), false);
+    $response->assertSee('Show image');
+    $response->assertSee('data-src="'.Storage::disk('public')->url('items/'.$item->uuid.'/photo.jpg').'"', false);
+    expect(preg_match('/<details[^>]*data-timeline-image.*?<img\s+src=/s', $response->getContent()))->toBe(0);
     $response->assertSee('Latest image for '.$item->name);
     $response->assertDontSee('Add Photo Event');
 });
@@ -61,7 +63,10 @@ test('guest item access is recorded as anonymous timeline activity', function ()
 
     $response->assertOk();
     $response->assertSee('Object accessed');
-    $response->assertSee('anonymous user from New York, United States using Safari');
+    $response->assertSeeInOrder([
+        '<span class="compose-log__source">Anonymous</span>',
+        'Object accessed | from New York, United States using Safari',
+    ], false);
 
     $this->assertDatabaseHas('item_accesses', [
         'item_id' => $item->id,
@@ -222,4 +227,26 @@ test('authenticated item access is recorded on the timeline', function () {
     $response->assertSee($user->name);
 
     expect(ItemAccess::query()->where('item_id', $item->id)->where('user_id', $user->id)->exists())->toBeTrue();
+});
+
+test('timeline uses email when an actor has no display name', function () {
+    $item = Item::factory()->create();
+    $user = User::factory()->create([
+        'name' => '',
+        'email' => 'operator@example.com',
+    ]);
+
+    $item->events()->create([
+        'user_id' => $user->id,
+        'image_path' => 'items/'.$item->uuid.'/photo.jpg',
+        'is_qr_verified' => false,
+    ]);
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->get('/'.$item->uuid);
+
+    $response->assertOk();
+    $response->assertSee('<span class="compose-log__source">operator@example.com</span>', false);
+    $response->assertSee('<a href="'.route('items.print', ['uuid' => $item->uuid]).'">Print label</a>', false);
 });
