@@ -30,6 +30,14 @@ document.addEventListener('change', (event) => {
     if (file && title && title.value.trim() === '') {
         title.value = file.name.replace(/\.[^.]+$/, '').trim();
     }
+
+    const fileName = input.dataset.fileNameTarget
+        ? document.querySelector(input.dataset.fileNameTarget)
+        : null;
+
+    if (fileName) {
+        fileName.textContent = file ? file.name : `Choose a photo. Maximum ${input.dataset.maxLabel}.`;
+    }
 }, true);
 
 document.addEventListener('input', (event) => {

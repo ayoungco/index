@@ -15,6 +15,29 @@
                 @if ($item->description)
                     <p class="app-muted max-w-3xl">{{ $item->description }}</p>
                 @endif
+
+                @if ($isAuthenticated && $canPost)
+                    <form method="POST" action="{{ route('items.update', ['uuid' => $item->uuid]) }}" class="app-description-form">
+                        @csrf
+                        @method('PATCH')
+
+                        <label for="item-description" class="app-form__label">Description</label>
+                        <div class="app-description-form__row">
+                            <textarea
+                                id="item-description"
+                                name="description"
+                                rows="2"
+                                maxlength="5000"
+                                class="app-field app-description-form__field"
+                                placeholder="Add context, condition, location, or usage notes"
+                            >{{ old('description', $item->description) }}</textarea>
+                            <button type="submit" class="app-btn app-description-form__submit">Save</button>
+                        </div>
+                        @error('description')
+                            <p class="app-notice text-xs">{{ $message }}</p>
+                        @enderror
+                    </form>
+                @endif
             </div>
 
             @if (session('status'))

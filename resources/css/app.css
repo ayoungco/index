@@ -234,6 +234,50 @@
         padding-top: 1rem;
     }
 
+    .app-quick-create {
+        display: grid;
+        gap: 0.65rem;
+    }
+
+    .app-quick-create__row {
+        display: grid;
+        grid-template-columns: minmax(12rem, 1fr) auto auto;
+        gap: 0.65rem;
+        align-items: stretch;
+    }
+
+    .app-quick-create__title {
+        min-height: 2.75rem;
+    }
+
+    .app-quick-create__camera,
+    .app-quick-create__submit {
+        min-width: 6.25rem;
+        white-space: nowrap;
+    }
+
+    .app-description-form {
+        display: grid;
+        max-width: 48rem;
+        gap: 0.55rem;
+        padding-top: 0.35rem;
+    }
+
+    .app-description-form__row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.65rem;
+        align-items: stretch;
+    }
+
+    .app-description-form__field {
+        min-height: 2.75rem;
+    }
+
+    .app-description-form__submit {
+        min-width: 5.25rem;
+    }
+
     .app-camera-btn__body,
     .app-camera-btn__lens {
         display: none;
@@ -583,6 +627,11 @@
 
         .compose-log__time {
             font-size: 0.6875rem;
+        }
+
+        .app-quick-create__row,
+        .app-description-form__row {
+            grid-template-columns: 1fr;
         }
 
         .app-header__inner {

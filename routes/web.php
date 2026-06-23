@@ -75,6 +75,11 @@ Route::post('/{uuid}/events', [ItemController::class, 'addPhoto'])
     ->middleware(['auth0.authenticate', 'auth0.verified'])
     ->name('items.events.store');
 
+Route::patch('/{uuid}', [ItemController::class, 'update'])
+    ->whereUuid('uuid')
+    ->middleware(['auth0.authenticate', 'auth0.verified'])
+    ->name('items.update');
+
 Route::get('/{namespace}/{slug}', [ItemController::class, 'showBySemantic'])
     ->where([
         'namespace' => '^(?!auth$|dashboard$|settings$|things$|properties$|relations$|messages$|wd$)[A-Za-z][A-Za-z0-9-]*$',

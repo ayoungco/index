@@ -93,7 +93,10 @@ test('dashboard exposes a create from photo workflow to verified users', functio
 
     $response->assertOk();
     $response->assertSee('Create From Photo');
-    $response->assertSee('Create item');
+    $response->assertSee('app-quick-create', false);
+    $response->assertSee('Camera');
+    $response->assertSee('Create');
+    $response->assertDontSee('Initial note');
     $response->assertSee(route('items.from-photo.store'), false);
     $response->assertDontSee('Wikidata QID');
     $response->assertSee('app-brand__mark', false);
@@ -203,6 +206,29 @@ test('scanned uuid initialization uses the photo filename when name is blank', f
 
     $response->assertRedirect(route('items.show', ['uuid' => $uuid]));
     expect(Item::query()->where('uuid', $uuid)->value('name'))->toBe('warehouse-camera');
+});
+
+test('verified users can update item description from the item page', function () {
+    $item = Item::factory()->create([
+        'description' => null,
+    ]);
+    $user = $item->creator;
+
+    $this->actingAs($user, 'auth0-session');
+
+    $show = $this->get(route('items.show', ['uuid' => $item->uuid]));
+
+    $show->assertOk();
+    $show->assertSee(route('items.update', ['uuid' => $item->uuid]), false);
+    $show->assertSee('Description');
+
+    $response = $this->patch(route('items.update', ['uuid' => $item->uuid]), [
+        'description' => 'Stored in bay 4 for repair intake.',
+    ]);
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    $response->assertSessionHas('status', 'Object description updated.');
+    expect($item->refresh()->description)->toBe('Stored in bay 4 for repair intake.');
 });
 
 test('print label offers distinct vertical and horizontal layouts', function () {

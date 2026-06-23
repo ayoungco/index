@@ -12,11 +12,20 @@
             @endif
 
             @if ($canCreateFromPhoto)
-                <form method="POST" action="{{ route('items.from-photo.store') }}" enctype="multipart/form-data" class="app-form px-4 py-5">
+                <form method="POST" action="{{ route('items.from-photo.store') }}" enctype="multipart/form-data" class="app-quick-create px-4 py-4">
                     @csrf
 
-                    <label class="app-form__field">
-                        <span class="app-form__label">Photo</span>
+                    <div class="app-quick-create__row">
+                        <label for="create-photo-name" class="sr-only">Object title</label>
+                        <input
+                            id="create-photo-name"
+                            type="text"
+                            name="name"
+                            value="{{ old('name') }}"
+                            maxlength="255"
+                            class="app-field app-quick-create__title"
+                            placeholder="Title"
+                        >
                         <input
                             id="create-photo-input"
                             type="file"
@@ -27,34 +36,17 @@
                             data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
                             data-max-label="{{ \App\Support\UploadLimits::label() }}"
                             data-title-target="#create-photo-name"
-                            class="app-field"
+                            data-file-name-target="#create-photo-selected"
+                            class="sr-only"
                         >
-                        <span class="app-form__hint">Required. Maximum {{ \App\Support\UploadLimits::label() }}.</span>
-                    </label>
-
-                    <label class="app-form__field">
-                        <span class="app-form__label">Name <span class="app-form__optional">Optional</span></span>
-                        <input
-                            id="create-photo-name"
-                            type="text"
-                            name="name"
-                            value="{{ old('name') }}"
-                            maxlength="255"
-                            class="app-field"
-                            placeholder="Optional - defaults to the photo filename"
-                        >
-                    </label>
-
-                    <label class="app-form__field">
-                        <span class="app-form__label">Initial note <span class="app-form__optional">Optional</span></span>
-                        <textarea
-                            name="description"
-                            rows="3"
-                            maxlength="5000"
-                            class="app-field resize-y"
-                            placeholder="Optional description or context"
-                        >{{ old('description') }}</textarea>
-                    </label>
+                        <label for="create-photo-input" class="app-btn app-quick-create__camera">
+                            Camera
+                        </label>
+                        <button type="submit" class="app-btn app-btn-primary app-quick-create__submit">
+                            Create
+                        </button>
+                    </div>
+                    <p id="create-photo-selected" class="app-form__hint">Choose a photo. Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
                     @error('photo')
                         <p class="app-notice text-xs">{{ $message }}</p>
@@ -63,14 +55,6 @@
                     @error('name')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
-                    @error('description')
-                        <p class="app-notice text-xs">{{ $message }}</p>
-                    @enderror
-                    <div class="app-form__actions">
-                        <button type="submit" class="app-btn app-btn-primary w-full sm:w-auto">
-                            Create item
-                        </button>
-                    </div>
                 </form>
             @else
                 <p class="app-muted px-4 py-4 text-sm">Verify your Auth0 email before creating objects from photos.</p>

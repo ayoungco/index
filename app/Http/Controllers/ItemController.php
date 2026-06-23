@@ -162,7 +162,6 @@ class ItemController extends Controller
             $validated = $request->validate([
                 'photo' => $this->photoRules(),
                 'name' => ['nullable', 'string', 'max:255'],
-                'description' => ['nullable', 'string', 'max:5000'],
                 'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
             ]);
 
@@ -178,7 +177,7 @@ class ItemController extends Controller
                 'name' => $name,
                 'slug' => $this->uniqueSlug($name),
                 'wikidata_qid' => $validated['wikidata_qid'] ?? null,
-                'description' => $validated['description'] ?? null,
+                'description' => null,
                 'user_id' => $request->user()->id,
             ]);
 
@@ -188,7 +187,7 @@ class ItemController extends Controller
                 'item_id' => $item->id,
                 'user_id' => $request->user()->id,
                 'image_path' => $relativePath,
-                'comment' => $validated['description'] ?? null,
+                'comment' => null,
                 'tags' => null,
                 'is_qr_verified' => false,
             ]);
@@ -210,6 +209,28 @@ class ItemController extends Controller
                 ->with('status', 'Photo item creation failed due to a temporary connection issue. Please try again.')
                 ->with('statusType', 'critical');
         }
+    }
+
+    public function update(Request $request, string $uuid): RedirectResponse
+    {
+        $item = Item::query()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'description' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $item->forceFill([
+            'description' => filled($validated['description'] ?? null)
+                ? $validated['description']
+                : null,
+        ])->save();
+
+        return redirect()
+            ->route('items.show', ['uuid' => $uuid])
+            ->with('status', 'Object description updated.')
+            ->with('statusType', 'notice');
     }
 
     public function addPhoto(Request $request, string $uuid): RedirectResponse
