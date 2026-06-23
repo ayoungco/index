@@ -22,6 +22,14 @@ document.addEventListener('change', (event) => {
     if (message) {
         input.reportValidity();
     }
+
+    const title = input.dataset.titleTarget
+        ? document.querySelector(input.dataset.titleTarget)
+        : null;
+
+    if (file && title && title.value.trim() === '') {
+        title.value = file.name.replace(/\.[^.]+$/, '').trim();
+    }
 }, true);
 
 document.addEventListener('input', (event) => {

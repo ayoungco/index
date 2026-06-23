@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\PostLoginRedirectController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
@@ -10,8 +11,6 @@ use App\Http\Controllers\SiteSettingsController;
 use App\Http\Controllers\ThingController;
 use App\Http\Controllers\WikidataThingController;
 use App\Http\Controllers\WikidataTypeController;
-use App\Models\Item;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,33 +34,7 @@ Route::get('auth/redirect', PostLoginRedirectController::class)
     ->middleware(['auth'])
     ->name('auth.redirect');
 
-Route::get('dashboard', function () {
-    $search = trim((string) request()->query('q', ''));
-
-    $items = Item::query()
-        ->when($search !== '', function (Builder $query) use ($search) {
-            $driver = $query->getConnection()->getDriverName();
-
-            if (in_array($driver, ['mysql', 'pgsql'], true)) {
-                $query->whereFullText(['name', 'description'], $search);
-
-                return;
-            }
-
-            $query->where(function (Builder $likeQuery) use ($search) {
-                $likeQuery
-                    ->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        })
-        ->latest('created_at')
-        ->limit(100)
-        ->get(['id', 'uuid', 'name', 'slug', 'wikidata_qid', 'type_namespace', 'description', 'created_at']);
-
-    $canCreateFromPhoto = (bool) request()->user()?->email_verified_at;
-
-    return view('dashboard', compact('items', 'search', 'canCreateFromPhoto'));
-})
+Route::get('dashboard', DashboardController::class)
     ->middleware(['auth'])
     ->name('dashboard');
 

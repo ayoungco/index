@@ -10,15 +10,36 @@
             background: #fff;
         }
 
+        .print-label--horizontal .index-min-label {
+            width: min(100%, 6in);
+        }
+
         @media print {
             @page {
-                size: 4in 6in portrait;
+                margin: 0;
+            }
+
+            .print-label--vertical {
+                page: vertical-label;
+            }
+
+            .print-label--horizontal {
+                page: horizontal-label;
+            }
+
+            @page vertical-label {
+                size: 4in 7in portrait;
+                margin: 0;
+            }
+
+            @page horizontal-label {
+                size: 6in 4in landscape;
                 margin: 0;
             }
         }
     </style>
 </head>
-<body>
-    @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
+<body class="print-label--{{ $layout }}">
+    @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg, 'layout' => $layout])
 </body>
 </html>

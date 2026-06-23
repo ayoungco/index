@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Item extends Model
 {
@@ -31,6 +32,18 @@ class Item extends Model
             'namespace' => $this->type_namespace,
             'slug' => $this->slug,
         ]);
+    }
+
+    public function typeLabel(): string
+    {
+        if (! $this->type_namespace) {
+            return 'Unclassified asset';
+        }
+
+        return Str::of($this->type_namespace)
+            ->replace(['-', '_'], ' ')
+            ->headline()
+            ->toString();
     }
 
     public function creator(): BelongsTo

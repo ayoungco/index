@@ -13,24 +13,42 @@
 
         .index-min-label__top {
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 0;
             margin: 0;
             padding: 0;
         }
 
+        .index-min-label--vertical .index-min-label__top {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .index-min-label--horizontal .index-min-label__top {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .index-min-label__logo,
-        .index-min-label__qr {
+        .index-min-label__qr,
+        .index-min-label__latest {
             display: block;
             width: 100%;
             aspect-ratio: 1 / 1;
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            background: #fff;
         }
 
-        .index-min-label__logo img,
+        .index-min-label__logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.2in;
+        }
+
         .index-min-label__qr svg,
-        .index-min-label__qr img {
+        .index-min-label__qr img,
+        .index-min-label__latest img {
             display: block;
             width: 100%;
             height: 100%;
@@ -39,11 +57,22 @@
             object-fit: contain;
         }
 
-        .index-min-label__title {
+        .index-min-label__logo-mark {
+            display: block;
+            width: 100%;
+            height: 100%;
+            --logo-mark-fill: #fff;
+            --logo-mark-ink: #000;
+        }
+
+        .index-min-label__identity {
             display: block;
             margin: 0;
             padding: 0.08in 0.1in;
             background: #000;
+        }
+
+        .index-min-label__title {
             color: #fff;
             font-size: clamp(1rem, 7vw, 1.65rem);
             font-weight: 800;
@@ -52,23 +81,29 @@
             text-transform: uppercase;
         }
 
-        .index-min-label__latest {
-            display: block;
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            margin: 0;
-            padding: 0;
-            background: #fff;
-            overflow: hidden;
+        .index-min-label__subtitle {
+            margin-top: 0.04in;
+            color: #aaa;
+            font-size: clamp(0.65rem, 3vw, 0.85rem);
+            font-weight: 700;
+            line-height: 1.2;
+            text-transform: uppercase;
         }
 
         .index-min-label__latest img {
-            display: block;
+            object-fit: cover;
+        }
+
+        .index-min-label__placeholder {
+            display: flex;
             width: 100%;
             height: 100%;
-            margin: 0;
-            padding: 0;
-            object-fit: cover;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.6in;
+            font-weight: 700;
+            line-height: 1;
         }
     </style>
 @endonce
@@ -82,17 +117,38 @@
         : null;
 @endphp
 
-<div class="index-min-label" aria-label="Index QR label for {{ $item->name }}">
+@php($layout = in_array($layout ?? 'vertical', ['vertical', 'horizontal'], true) ? ($layout ?? 'vertical') : 'vertical')
+
+<div class="index-min-label index-min-label--{{ $layout }}" aria-label="Index QR label for {{ $item->name }}">
     <div class="index-min-label__top">
-        <span class="index-min-label__logo">
-            <img src="{{ asset('index-150x150.png') }}" alt="Index logo">
-        </span>
-        <span class="index-min-label__qr">
-            {!! $qrSvg !!}
-        </span>
+        @if ($layout === 'vertical')
+            <span class="index-min-label__logo">
+                <x-app-logo-mark class="index-min-label__logo-mark" title="Index logo" />
+            </span>
+            <span class="index-min-label__qr">
+                {!! $qrSvg !!}
+            </span>
+        @else
+            <span class="index-min-label__qr">
+                {!! $qrSvg !!}
+            </span>
+            <span class="index-min-label__logo">
+                <x-app-logo-mark class="index-min-label__logo-mark" title="Index logo" />
+            </span>
+            <span class="index-min-label__latest">
+                @if ($latestImageUrl)
+                    <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
+                @else
+                    <span class="index-min-label__placeholder" aria-label="No photo available">?</span>
+                @endif
+            </span>
+        @endif
     </div>
-    <div class="index-min-label__title">{{ $item->name }}</div>
-    @if ($latestImageUrl)
+    <div class="index-min-label__identity">
+        <div class="index-min-label__title">{{ $item->name }}</div>
+        <div class="index-min-label__subtitle">{{ $item->typeLabel() }}</div>
+    </div>
+    @if ($layout === 'vertical' && $latestImageUrl)
         <span class="index-min-label__latest">
             <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
         </span>

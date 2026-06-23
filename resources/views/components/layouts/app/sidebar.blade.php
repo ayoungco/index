@@ -4,31 +4,50 @@
         @include('partials.head')
     </head>
     <body>
-        @php($user = auth()->user())
+        @php
+            $user = auth()->user();
+            $brandDomain = parse_url($siteSettings['site_url'], PHP_URL_HOST) ?: $siteSettings['site_name'];
+        @endphp
 
-        <header class="border-b border-current">
-            <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-                <a href="{{ route('dashboard') }}" class="font-bold no-underline">
-                    {{ config('app.name', 'Index') }}
+        <header class="app-header">
+            <div class="app-header__inner">
+                <a href="{{ $user ? route('dashboard') : route('home') }}" class="app-brand" aria-label="{{ $brandDomain }} home">
+                    <x-app-logo-mark class="app-brand__mark" />
+                    <span class="app-brand__domain">{{ $brandDomain }}</span>
                 </a>
 
-                <nav class="flex flex-wrap gap-3 text-sm">
-                    <a href="{{ route('dashboard') }}">Dashboard</a>
-                    <a href="{{ route('things.index') }}">Things</a>
-                    <a href="{{ route('properties.index') }}">Properties</a>
-                    <a href="{{ route('relations.index') }}">Relations</a>
-                    <a href="{{ route('messages.index') }}">Messages</a>
-                </nav>
+                @if ($user)
+                    <form method="GET" action="{{ route('dashboard') }}" class="app-header__search" role="search">
+                        <label for="app-header-search" class="sr-only">Search objects</label>
+                        <input
+                            id="app-header-search"
+                            name="q"
+                            type="search"
+                            value="{{ request()->routeIs('dashboard') ? request('q') : '' }}"
+                            placeholder="Search assets"
+                            class="app-header__search-input"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="app-header__search-button">
+                            Search
+                        </button>
+                        @if (request()->routeIs('dashboard') && request()->filled('q'))
+                            <a href="{{ route('dashboard') }}" class="app-header__search-clear" aria-label="Clear search">
+                                Clear
+                            </a>
+                        @endif
+                    </form>
+                @endif
 
-                <div class="ms-auto flex flex-wrap items-center gap-3 text-sm">
+                <nav class="app-header__actions" aria-label="Account">
                     @if ($user)
-                        <span>{{ $user->email }}</span>
+                        <span class="app-header__identity" title="{{ $user->email }}">{{ $user->email }}</span>
                         <a href="{{ route('settings.profile') }}">Settings</a>
                         <a href="{{ url('/logout') }}">Log Out</a>
                     @else
                         <a href="{{ route('login') }}">Log in</a>
                     @endif
-                </div>
+                </nav>
             </div>
         </header>
 

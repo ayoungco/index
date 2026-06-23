@@ -18,7 +18,7 @@
                     method="POST"
                     action="{{ route('items.initialize', ['uuid' => $uuid]) }}"
                     enctype="multipart/form-data"
-                    class="mt-5 grid gap-4"
+                    class="app-form mt-5"
                 >
                     @csrf
 
@@ -31,10 +31,11 @@
                         required
                         data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
                         data-max-label="{{ \App\Support\UploadLimits::label() }}"
+                        data-title-target="#init-name"
                         class="sr-only"
                     >
 
-                    <div class="flex flex-wrap items-center gap-3">
+                    <div class="app-form__upload">
                         <button
                             id="init-photo-trigger"
                             type="button"
@@ -45,26 +46,28 @@
                             <span class="app-camera-btn__body" aria-hidden="true">
                                 <span class="app-camera-btn__lens"></span>
                             </span>
+                            Choose photo
                         </button>
                         <span id="{{ $nameId }}" class="app-muted">No photo selected</span>
                     </div>
-                    <p class="app-muted text-xs">Maximum {{ \App\Support\UploadLimits::label() }}.</p>
+                    <p class="app-form__hint">Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
-                    <div id="init-fields" class="hidden grid gap-4">
-                        <label class="grid gap-1">
-                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Name <span class="app-muted normal-case">(optional)</span></span>
+                    <div id="init-fields" class="hidden grid gap-5">
+                        <label class="app-form__field">
+                            <span class="app-form__label">Name <span class="app-form__optional">Optional</span></span>
                             <input
+                                id="init-name"
                                 type="text"
                                 name="name"
                                 value="{{ old('name') }}"
                                 maxlength="255"
                                 class="app-field"
-                                placeholder="Leave blank to use the object ID"
+                                placeholder="Defaults to the photo filename or object ID"
                             >
                         </label>
 
-                        <label class="grid gap-1">
-                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Note <span class="app-muted normal-case">(optional)</span></span>
+                        <label class="app-form__field">
+                            <span class="app-form__label">Note <span class="app-form__optional">Optional</span></span>
                             <textarea
                                 name="comment"
                                 rows="2"
@@ -74,22 +77,11 @@
                             >{{ old('comment') }}</textarea>
                         </label>
 
-                        <label class="grid gap-1">
-                            <span class="app-accent text-xs uppercase tracking-[0.16em]">Wikidata QID <span class="app-muted normal-case">(optional)</span></span>
-                            <input
-                                type="text"
-                                name="wikidata_qid"
-                                value="{{ old('wikidata_qid') }}"
-                                maxlength="32"
-                                pattern="Q[1-9][0-9]*"
-                                class="app-field"
-                                placeholder="Q629"
-                            >
-                        </label>
-
-                        <button type="submit" class="app-btn app-btn w-full sm:w-auto">
-                            Register Object
-                        </button>
+                        <div class="app-form__actions">
+                            <button type="submit" class="app-btn app-btn-primary w-full sm:w-auto">
+                                Register object
+                            </button>
+                        </div>
                     </div>
 
                     @error('photo')
@@ -102,10 +94,6 @@
                     @error('comment')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
-                    @error('wikidata_qid')
-                        <p class="app-notice text-xs">{{ $message }}</p>
-                    @enderror
-
                     <noscript>
                         <div class="grid gap-4">
                             <label class="grid gap-1">
@@ -116,11 +104,7 @@
                                 <span class="app-accent">Name <span class="app-muted">(optional)</span></span>
                                 <input type="text" name="name" maxlength="255" class="app-field">
                             </label>
-                            <label class="grid gap-1">
-                                <span class="app-accent">Wikidata QID <span class="app-muted">(optional)</span></span>
-                                <input type="text" name="wikidata_qid" maxlength="32" pattern="Q[1-9][0-9]*" class="app-field">
-                            </label>
-                            <button type="submit" class="app-btn app-btn">Register Object</button>
+                            <button type="submit" class="app-btn app-btn-primary">Register object</button>
                         </div>
                     </noscript>
                 </form>

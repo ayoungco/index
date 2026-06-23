@@ -64,6 +64,12 @@ test('guest item access is recorded as anonymous timeline activity', function ()
     $response->assertOk();
     $response->assertSee('Object accessed');
     $response->assertSeeInOrder([
+        '<td class="compose-log__rail-cell"',
+        '<time class="compose-log__time"',
+        '<span class="compose-log__source">Anonymous</span>',
+        '<span class="compose-log__message">Object accessed | from New York, United States using Safari</span>',
+    ], false);
+    $response->assertSeeInOrder([
         '<span class="compose-log__source">Anonymous</span>',
         'Object accessed | from New York, United States using Safari',
     ], false);
@@ -87,8 +93,44 @@ test('dashboard exposes a create from photo workflow to verified users', functio
 
     $response->assertOk();
     $response->assertSee('Create From Photo');
-    $response->assertSee('Create Item From Photo');
+    $response->assertSee('Create item');
     $response->assertSee(route('items.from-photo.store'), false);
+    $response->assertDontSee('Wikidata QID');
+    $response->assertSee('app-brand__mark', false);
+    $response->assertSee('app-logo-mark', false);
+    $response->assertSee('app-header__search', false);
+    $response->assertSee('Search assets');
+    $response->assertDontSee('Rapid Full Text Search');
+    $response->assertSee(parse_url(config('app.url'), PHP_URL_HOST));
+    $response->assertDontSee('>Things<', false);
+    $response->assertDontSee('>Properties<', false);
+    $response->assertDontSee('>Relations<', false);
+    $response->assertDontSee('>Messages<', false);
+});
+
+test('dashboard search filters objects from the shared header endpoint', function () {
+    $user = User::factory()->create();
+    Item::factory()->create([
+        'name' => 'Scanner cradle',
+        'description' => 'Receiving desk asset',
+        'user_id' => $user->id,
+    ]);
+    Item::factory()->create([
+        'name' => 'Warehouse cart',
+        'description' => 'Back room transport',
+        'user_id' => $user->id,
+    ]);
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->get(route('dashboard', ['q' => 'scanner']));
+
+    $response->assertOk();
+    $response->assertSee('Search Results');
+    $response->assertSee('value="scanner"', false);
+    $response->assertSee('Scanner cradle');
+    $response->assertDontSee('Warehouse cart');
+    $response->assertSee('Clear search');
 });
 
 test('verified users can create a new item from only a photo', function () {
@@ -130,7 +172,7 @@ test('verified users can create a new item from only a photo', function () {
     $item = Item::query()->sole();
 
     $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
-    expect($item->name)->toStartWith('Photo item ');
+    expect($item->name)->toBe('new-item');
     expect($item->description)->toBeNull();
     expect($item->creator->is($user))->toBeTrue();
 
@@ -139,6 +181,75 @@ test('verified users can create a new item from only a photo', function () {
     expect($event->comment)->toBeNull();
     expect($event->is_qr_verified)->toBeFalse();
     Storage::disk('public')->assertExists($event->image_path);
+});
+
+test('scanned uuid initialization uses the photo filename when name is blank', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $uuid = (string) Str::uuid();
+
+    $this->mock(ImageCompressionService::class, function ($mock) {
+        $mock->shouldReceive('compressAndStore')
+            ->once()
+            ->andReturn('items/example/photo.jpg');
+    });
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->post(route('items.initialize', ['uuid' => $uuid]), [
+        'photo' => UploadedFile::fake()->image('warehouse-camera.png'),
+    ]);
+
+    $response->assertRedirect(route('items.show', ['uuid' => $uuid]));
+    expect(Item::query()->where('uuid', $uuid)->value('name'))->toBe('warehouse-camera');
+});
+
+test('print label offers distinct vertical and horizontal layouts', function () {
+    $item = Item::factory()->create();
+
+    $this->actingAs($item->creator, 'auth0-session');
+
+    $vertical = $this->get(route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']));
+
+    $vertical->assertOk();
+    $vertical->assertSee('index-min-label--vertical', false);
+    $vertical->assertSee('index-min-label__logo-mark', false);
+    $vertical->assertDontSee(asset('index-v.svg'), false);
+    $vertical->assertDontSee('<span class="index-min-label__placeholder"', false);
+    $vertical->assertSeeInOrder([
+        'index-min-label__logo',
+        'index-min-label__qr',
+        'index-min-label__identity',
+        'index-min-label__title',
+        'index-min-label__subtitle',
+    ], false);
+
+    $horizontal = $this->get(route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']));
+
+    $horizontal->assertOk();
+    $horizontal->assertSee('index-min-label--horizontal', false);
+    $horizontal->assertSee('index-min-label__placeholder', false);
+    $horizontal->assertSeeInOrder([
+        'index-min-label__qr',
+        'index-min-label__logo',
+        'index-min-label__latest',
+        'index-min-label__identity',
+        'index-min-label__title',
+        'index-min-label__subtitle',
+    ], false);
+});
+
+test('item type is shown beneath the item title', function () {
+    $item = Item::factory()->create([
+        'type_namespace' => 'medical-device',
+    ]);
+
+    $response = $this->get('/'.$item->uuid);
+
+    $response->assertOk();
+    $response->assertSee('index-min-label__subtitle', false);
+    $response->assertSee('Medical Device');
 });
 
 test('the image processor writes a generated jpeg to the public disk', function () {
@@ -248,5 +359,7 @@ test('timeline uses email when an actor has no display name', function () {
 
     $response->assertOk();
     $response->assertSee('<span class="compose-log__source">operator@example.com</span>', false);
-    $response->assertSee('<a href="'.route('items.print', ['uuid' => $item->uuid]).'">Print label</a>', false);
+    $response->assertSee('app-header__search', false);
+    $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']), false);
+    $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']), false);
 });

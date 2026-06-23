@@ -12,12 +12,13 @@
             @endif
 
             @if ($canCreateFromPhoto)
-                <form method="POST" action="{{ route('items.from-photo.store') }}" enctype="multipart/form-data" class="grid gap-4 px-4 py-4">
+                <form method="POST" action="{{ route('items.from-photo.store') }}" enctype="multipart/form-data" class="app-form px-4 py-5">
                     @csrf
 
-                    <label class="grid gap-1">
-                        <span class="app-accent text-xs uppercase tracking-[0.16em]">Photo</span>
+                    <label class="app-form__field">
+                        <span class="app-form__label">Photo</span>
                         <input
+                            id="create-photo-input"
                             type="file"
                             name="photo"
                             accept="image/*,.heic,.heif"
@@ -25,25 +26,27 @@
                             required
                             data-max-bytes="{{ \App\Support\UploadLimits::maxBytes() }}"
                             data-max-label="{{ \App\Support\UploadLimits::label() }}"
+                            data-title-target="#create-photo-name"
                             class="app-field"
                         >
-                        <span class="app-muted text-xs">Required. Maximum {{ \App\Support\UploadLimits::label() }}.</span>
+                        <span class="app-form__hint">Required. Maximum {{ \App\Support\UploadLimits::label() }}.</span>
                     </label>
 
-                    <label class="grid gap-1">
-                        <span class="app-accent text-xs uppercase tracking-[0.16em]">Name</span>
+                    <label class="app-form__field">
+                        <span class="app-form__label">Name <span class="app-form__optional">Optional</span></span>
                         <input
+                            id="create-photo-name"
                             type="text"
                             name="name"
                             value="{{ old('name') }}"
                             maxlength="255"
                             class="app-field"
-                            placeholder="Optional — defaults to Photo item timestamp"
+                            placeholder="Optional - defaults to the photo filename"
                         >
                     </label>
 
-                    <label class="grid gap-1">
-                        <span class="app-accent text-xs uppercase tracking-[0.16em]">Initial Note</span>
+                    <label class="app-form__field">
+                        <span class="app-form__label">Initial note <span class="app-form__optional">Optional</span></span>
                         <textarea
                             name="description"
                             rows="3"
@@ -51,19 +54,6 @@
                             class="app-field resize-y"
                             placeholder="Optional description or context"
                         >{{ old('description') }}</textarea>
-                    </label>
-
-                    <label class="grid gap-1">
-                        <span class="app-accent text-xs uppercase tracking-[0.16em]">Wikidata QID</span>
-                        <input
-                            type="text"
-                            name="wikidata_qid"
-                            value="{{ old('wikidata_qid') }}"
-                            maxlength="32"
-                            pattern="Q[1-9][0-9]*"
-                            class="app-field"
-                            placeholder="Optional, e.g. Q629"
-                        >
                     </label>
 
                     @error('photo')
@@ -76,13 +66,11 @@
                     @error('description')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
-                    @error('wikidata_qid')
-                        <p class="app-notice text-xs">{{ $message }}</p>
-                    @enderror
-
-                    <button type="submit" class="app-btn app-btn w-full sm:w-auto">
-                        Create Item From Photo
-                    </button>
+                    <div class="app-form__actions">
+                        <button type="submit" class="app-btn app-btn-primary w-full sm:w-auto">
+                            Create item
+                        </button>
+                    </div>
                 </form>
             @else
                 <p class="app-muted px-4 py-4 text-sm">Verify your Auth0 email before creating objects from photos.</p>
@@ -92,34 +80,16 @@
         <div class="app-panel">
             <div class="app-divider border-b px-4 py-3">
                 <h2 class="app-muted text-sm font-semibold uppercase tracking-[0.2em]">
-                    Existing Objects
+                    {{ $search !== '' ? 'Search Results' : 'Existing Objects' }}
                 </h2>
             </div>
 
-            <form method="GET" action="{{ route('dashboard') }}" class="app-divider border-b px-4 py-3">
-                <label for="item-search" class="app-muted mb-2 block text-xs font-semibold uppercase tracking-[0.2em]">
-                    Rapid Full Text Search
-                </label>
-                <div class="flex gap-2">
-                    <input
-                        id="item-search"
-                        name="q"
-                        type="search"
-                        value="{{ $search }}"
-                        placeholder="Search item names and descriptions"
-                        class="app-divider w-full rounded-md border bg-transparent px-3 py-2 text-sm"
-                        autocomplete="off"
-                    >
-                    <button type="submit" class="app-divider rounded-md border px-3 py-2 text-sm">
-                        Search
-                    </button>
-                    @if($search !== '')
-                        <a href="{{ route('dashboard') }}" class="app-divider rounded-md border px-3 py-2 text-sm">
-                            Clear
-                        </a>
-                    @endif
+            @if($search !== '')
+                <div class="app-divider flex flex-wrap items-center gap-3 border-b px-4 py-3 text-sm">
+                    <span class="app-muted">Showing matches for "{{ $search }}".</span>
+                    <a href="{{ route('dashboard') }}">Clear search</a>
                 </div>
-            </form>
+            @endif
 
             @if($items->isEmpty())
                 <div class="app-muted px-4 py-6 text-sm">
@@ -140,6 +110,7 @@
                             >
                                 {{ $item->name }}
                             </a>
+                            <p class="app-muted mt-1 text-xs">{{ $item->typeLabel() }}</p>
                             @if($item->wikidata_qid || $semanticUrl)
                                 <p class="app-muted mt-1 break-all text-xs">
                                     @if($semanticUrl)

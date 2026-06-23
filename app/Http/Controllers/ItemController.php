@@ -116,7 +116,11 @@ class ItemController extends Controller
             'comment' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $name = filled($validated['name'] ?? null) ? $validated['name'] : $uuid;
+        $name = trim((string) ($validated['name'] ?? ''));
+
+        if ($name === '') {
+            $name = $this->nameFromPhoto($validated['photo'], $uuid);
+        }
 
         $item = Item::query()->create([
             'uuid' => $uuid,
@@ -166,7 +170,7 @@ class ItemController extends Controller
             $name = trim((string) ($validated['name'] ?? ''));
 
             if ($name === '') {
-                $name = 'Photo item '.now()->format('Y-m-d H:i');
+                $name = $this->nameFromPhoto($validated['photo'], $uuid);
             }
 
             $item = Item::query()->create([
@@ -280,11 +284,15 @@ class ItemController extends Controller
             ->where('uuid', $uuid)
             ->firstOrFail();
         $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
+        $layout = in_array($request->query('layout'), ['vertical', 'horizontal'], true)
+            ? $request->query('layout')
+            : 'vertical';
 
         return view('items.print', [
             'item' => $item,
             'itemUrl' => $itemUrl,
             'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
+            'layout' => $layout,
             'isAuthenticated' => (bool) $request->user(),
         ]);
     }
@@ -301,6 +309,13 @@ class ItemController extends Controller
 
             return $this->uploadedImageStorage->storeOriginal($photo, 'items/'.$uuid);
         }
+    }
+
+    private function nameFromPhoto(UploadedFile $photo, string $uuid): string
+    {
+        $filename = trim(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+
+        return $filename === '' ? $uuid : Str::limit($filename, 255, '');
     }
 
     private function photoRules(): array

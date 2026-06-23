@@ -1,12 +1,15 @@
 <x-layouts.app :title="$item->name">
-    <section class="app-shell text-sm">
-        <div class="app-panel">
-            <div class="app-divider grid gap-4 border-b pb-4">
-                @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
+    <section class="item-page text-sm">
+        <div class="item-page__label">
+            @include('items.partials.label', ['item' => $item, 'qrSvg' => $qrSvg])
+        </div>
 
+        <div class="item-page__content">
+            <div class="app-divider grid gap-3 border-b pb-4">
                 <p class="break-all text-xs">{{ $itemUrl }}</p>
-                <p class="text-xs">
-                    <a href="{{ route('items.print', ['uuid' => $item->uuid]) }}">Print label</a>
+                <p class="flex flex-wrap gap-3 text-xs">
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']) }}">Print vertical</a>
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']) }}">Print horizontal</a>
                 </p>
 
                 @if ($item->description)
@@ -30,7 +33,7 @@
                             $nameId = 'photo-name-'.$item->id;
                         @endphp
 
-                        <form method="POST" action="{{ route('items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3">
+                        <form method="POST" action="{{ route('items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="app-form mt-4">
                             @csrf
 
                             <input
@@ -45,8 +48,8 @@
                                 class="sr-only"
                             >
 
-                            <label class="grid gap-1">
-                                <span class="app-accent text-xs uppercase tracking-[0.16em]">Comment</span>
+                            <label class="app-form__field">
+                                <span class="app-form__label">Comment <span class="app-form__optional">Optional</span></span>
                                 <textarea
                                     name="comment"
                                     rows="2"
@@ -56,8 +59,8 @@
                                 >{{ old('comment') }}</textarea>
                             </label>
 
-                            <label class="grid gap-1">
-                                <span class="app-accent text-xs uppercase tracking-[0.16em]">Tags</span>
+                            <label class="app-form__field">
+                                <span class="app-form__label">Tags <span class="app-form__optional">Optional</span></span>
                                 <input
                                     type="text"
                                     name="tags"
@@ -66,10 +69,10 @@
                                     class="app-field"
                                     placeholder="handoff, warehouse-a, fragile"
                                 >
-                                <span class="app-muted text-xs">Separate tags with commas.</span>
+                                <span class="app-form__hint">Separate tags with commas.</span>
                             </label>
 
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="app-form__upload">
                                 <button
                                     id="photo-trigger-{{ $item->id }}"
                                     type="button"
@@ -80,11 +83,12 @@
                                     <span class="app-camera-btn__body" aria-hidden="true">
                                         <span class="app-camera-btn__lens"></span>
                                     </span>
+                                    Add photo
                                 </button>
                                 <span id="{{ $nameId }}" class="app-muted text-xs">No file selected</span>
                             </div>
 
-                            <p class="app-muted text-xs">Upload starts automatically. Maximum {{ \App\Support\UploadLimits::label() }}.</p>
+                            <p class="app-form__hint">Upload starts automatically. Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -129,41 +133,57 @@
                 @if ($timeline->isEmpty())
                     <p class="app-muted mt-2">No events yet.</p>
                 @else
-                    <ul class="compose-log mt-3" aria-label="Timeline log">
-                        @foreach ($timeline as $event)
-                            @php
-                                $message = trim(collect([
-                                    $event['title'],
-                                    $event['comment'] ?: null,
-                                ])->filter()->implode(' | '));
-                            @endphp
-                            <li class="compose-log__line {{ $event['image_url'] ? 'compose-log__line--media' : '' }}">
-                                <div class="compose-log__meta">
-                                    <span class="compose-log__source">{{ $event['actor'] }}</span>
-                                    <span class="compose-log__pipe">|</span>
-                                    <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
-                                        {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
-                                    </time>
-                                    <span class="compose-log__message">{{ $message }}</span>
-                                </div>
-                                @if ($event['image_url'])
-                                    <details class="mt-2" data-timeline-image>
-                                        <summary class="cursor-pointer">Show image</summary>
-                                        <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
-                                            <img data-src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
-                                        </a>
-                                    </details>
-                                @endif
-                                @if (! empty($event['tags']))
-                                    <div class="compose-log__tags" aria-label="Tags">
-                                        @foreach ($event['tags'] as $tag)
-                                            <span class="compose-log__tag">{{ $tag }}</span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
+                    <table class="compose-log mt-3" aria-label="Timeline log">
+                        <colgroup>
+                            <col class="compose-log__rail-col">
+                            <col class="compose-log__time-col">
+                            <col class="compose-log__source-col">
+                            <col>
+                        </colgroup>
+                        <tbody>
+                            @foreach ($timeline as $event)
+                                @php
+                                    $message = trim(collect([
+                                        $event['title'],
+                                        $event['comment'] ?: null,
+                                    ])->filter()->implode(' | '));
+                                @endphp
+                                <tr class="compose-log__line {{ $event['image_url'] ? 'compose-log__line--media' : '' }}">
+                                    <td class="compose-log__rail-cell" aria-hidden="true">
+                                        <span class="compose-log__rail">
+                                            <span class="compose-log__dot"></span>
+                                        </span>
+                                    </td>
+                                    <td class="compose-log__cell compose-log__cell--time">
+                                        <time class="compose-log__time" datetime="{{ $event['occurred_at']?->toIso8601String() }}">
+                                            {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}
+                                        </time>
+                                    </td>
+                                    <td class="compose-log__cell compose-log__cell--source">
+                                        <span class="compose-log__source">{{ $event['actor'] }}</span>
+                                    </td>
+                                    <td class="compose-log__cell compose-log__cell--message">
+                                        <span class="compose-log__message">{{ $message }}</span>
+                                        @if ($event['image_url'])
+                                            <details class="mt-2" data-timeline-image>
+                                                <summary class="cursor-pointer">Show image</summary>
+                                                <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
+                                                    <img data-src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
+                                                </a>
+                                            </details>
+                                        @endif
+                                        @if (! empty($event['tags']))
+                                            <div class="compose-log__tags" aria-label="Tags">
+                                                @foreach ($event['tags'] as $tag)
+                                                    <span class="compose-log__tag">{{ $tag }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 @endif
             </div>
         </div>
