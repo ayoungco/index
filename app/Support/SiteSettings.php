@@ -16,7 +16,6 @@ class SiteSettings
 
     private const WRITABLE_KEYS = [
         'site_name',
-        'site_url',
         'logo_path',
         'scanner_title',
         'scanner_tagline',
@@ -44,7 +43,7 @@ class SiteSettings
             ->all();
 
         $settings = array_merge($this->defaults(), $stored);
-        $settings['site_url'] = $this->normalizeUrl($settings['site_url'] ?? null) ?? config('app.url');
+        $settings['site_url'] = $this->environmentUrl();
         $settings['primary_color'] = $this->normalizeColor($settings['primary_color'] ?? null, self::DEFAULT_PRIMARY_COLOR);
         $settings['background_color'] = $this->normalizeColor($settings['background_color'] ?? null, self::DEFAULT_BACKGROUND_COLOR);
         $settings['highlight_color'] = $this->normalizeColor($settings['highlight_color'] ?? null, self::DEFAULT_HIGHLIGHT_COLOR);
@@ -75,7 +74,6 @@ class SiteSettings
             array_flip(self::WRITABLE_KEYS),
         );
 
-        $payload['site_url'] = $this->normalizeUrl($payload['site_url']) ?? config('app.url');
         $rows = [];
 
         foreach ($payload as $key => $value) {
@@ -114,7 +112,7 @@ class SiteSettings
     {
         return [
             'site_name' => config('app.name', 'Index'),
-            'site_url' => config('app.url'),
+            'site_url' => $this->environmentUrl(),
             'logo_path' => null,
             'scanner_title' => 'One trusted source.',
             'scanner_tagline' => 'Scan an item UUID, post photos from camera, and keep the canonical timeline in one place.',
@@ -134,6 +132,11 @@ class SiteSettings
         }
 
         return rtrim($url, '/');
+    }
+
+    private function environmentUrl(): string
+    {
+        return $this->normalizeUrl(config('app.url')) ?? 'http://localhost';
     }
 
     private function normalizeColor(mixed $color, string $fallback): string

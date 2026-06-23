@@ -28,7 +28,6 @@ test('authenticated users can update site settings from the admin screen', funct
 
     $response = $this->actingAs($user)->put(route('settings.site.update'), [
         'site_name' => 'Warehouse Scanner',
-        'site_url' => 'https://scanner.example.com/',
         'scanner_title' => 'Scan with confidence.',
         'scanner_tagline' => 'Track equipment, intake photos, and hand off labels with your own brand.',
         'label_name' => 'Warehouse Label',
@@ -41,12 +40,26 @@ test('authenticated users can update site settings from the admin screen', funct
 
     $response->assertRedirect(route('settings.site'));
     expect(AppSetting::query()->where('key', 'site_name')->value('value'))->toBe('Warehouse Scanner');
-    expect(AppSetting::query()->where('key', 'site_url')->value('value'))->toBe('https://scanner.example.com');
+    expect(AppSetting::query()->where('key', 'site_url')->exists())->toBeFalse();
     expect(app(SiteSettings::class)->get('site_name'))->toBe('Warehouse Scanner');
+    expect(app(SiteSettings::class)->get('site_url'))->toBe(config('app.url'));
     expect(app(SiteSettings::class)->get('label_name'))->toBe('Warehouse Label');
     expect(app(SiteSettings::class)->get('primary_color'))->toBe('#101010');
 
-    Storage::disk('public')->assertExists(AppSetting::query()->where('key', 'logo_path')->value('value'));
+    $logoPath = AppSetting::query()->where('key', 'logo_path')->value('value');
+    Storage::disk('public')->assertExists($logoPath);
+
+    $dashboard = $this->actingAs($user)->get(route('dashboard'));
+
+    $dashboard->assertOk();
+    $dashboard->assertSee(asset('storage/'.$logoPath), false);
+
+    $item = \App\Models\Item::factory()->create(['user_id' => $user->id]);
+    $print = $this->actingAs($user, 'auth0-session')->get(route('items.print', ['uuid' => $item->uuid]));
+
+    $print->assertOk();
+    $print->assertSee(asset('storage/'.$logoPath), false);
+    $print->assertDontSee('aria-label="Index logo"', false);
 });
 
 test('site colors must be six digit hex values', function () {
@@ -54,7 +67,6 @@ test('site colors must be six digit hex values', function () {
 
     $response = $this->actingAs($user)->put(route('settings.site.update'), [
         'site_name' => 'Index',
-        'site_url' => 'https://index.test',
         'scanner_title' => 'One trusted source.',
         'scanner_tagline' => '',
         'label_name' => 'Asset Label',

@@ -27,7 +27,6 @@ class AppServiceProvider extends ServiceProvider
 
         config([
             'app.name' => $settings['site_name'],
-            'app.url' => $settings['site_url'],
         ]);
 
         View::share('siteSettings', $settings);

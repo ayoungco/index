@@ -18,10 +18,11 @@
                     <input class="app-field" name="site_name" type="text" required value="{{ old('site_name', $defaults['site_name']) }}">
                 </label>
 
-                <label class="grid gap-1 text-sm">
+                <div class="grid gap-1 text-sm">
                     <span>{{ __('Public site URL') }}</span>
-                    <input class="app-field" name="site_url" type="url" required value="{{ old('site_url', $defaults['site_url']) }}">
-                </label>
+                    <input class="app-field" type="url" value="{{ $defaults['site_url'] }}" disabled>
+                    <p class="app-form__hint">{{ __('Inherited from Laravel APP_URL.') }}</p>
+                </div>
 
                 <label class="grid gap-1 text-sm">
                     <span>{{ __('Scanner headline') }}</span>

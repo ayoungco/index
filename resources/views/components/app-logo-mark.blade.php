@@ -1,5 +1,18 @@
 @props(['title' => null])
 
+@php
+    $settings = app(\App\Support\SiteSettings::class)->all();
+    $logoUrl = ($settings['logo_path'] ?? null) ? $settings['logo_url'] : null;
+    $label = $title ?? $settings['site_name'] ?? config('app.name');
+@endphp
+
+@if ($logoUrl)
+    <img
+        src="{{ $logoUrl }}"
+        alt="{{ $label }}"
+        {{ $attributes->class(['app-logo-mark', 'app-logo-mark--image']) }}
+    >
+@else
 <svg
     {{ $attributes->class('app-logo-mark') }}
     viewBox="0 0 85.389488 73.900108"
@@ -22,3 +35,4 @@
         />
     </g>
 </svg>
+@endif

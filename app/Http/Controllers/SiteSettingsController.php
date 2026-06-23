@@ -24,7 +24,6 @@ class SiteSettingsController extends Controller
     {
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:120'],
-            'site_url' => ['required', 'url', 'max:255'],
             'scanner_title' => ['required', 'string', 'max:160'],
             'scanner_tagline' => ['nullable', 'string', 'max:500'],
             'label_name' => ['required', 'string', 'max:120'],
@@ -58,7 +57,6 @@ class SiteSettingsController extends Controller
 
         $this->siteSettings->save([
             'site_name' => $validated['site_name'],
-            'site_url' => $validated['site_url'],
             'scanner_title' => $validated['scanner_title'],
             'scanner_tagline' => $validated['scanner_tagline'] ?? null,
             'label_name' => $validated['label_name'],

@@ -61,6 +61,7 @@
             display: block;
             width: 100%;
             height: 100%;
+            object-fit: contain;
             --logo-mark-fill: #fff;
             --logo-mark-ink: #000;
         }
@@ -123,7 +124,7 @@
     <div class="index-min-label__top">
         @if ($layout === 'vertical')
             <span class="index-min-label__logo">
-                <x-app-logo-mark class="index-min-label__logo-mark" title="Index logo" />
+                <x-app-logo-mark class="index-min-label__logo-mark" />
             </span>
             <span class="index-min-label__qr">
                 {!! $qrSvg !!}
@@ -133,7 +134,7 @@
                 {!! $qrSvg !!}
             </span>
             <span class="index-min-label__logo">
-                <x-app-logo-mark class="index-min-label__logo-mark" title="Index logo" />
+                <x-app-logo-mark class="index-min-label__logo-mark" />
             </span>
             <span class="index-min-label__latest">
                 @if ($latestImageUrl)

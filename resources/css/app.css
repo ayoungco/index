@@ -273,6 +273,10 @@
         overflow: visible;
     }
 
+    .app-logo-mark--image {
+        object-fit: contain;
+    }
+
     .app-color-field {
         width: 3rem;
         height: 2.25rem;
@@ -476,6 +480,10 @@
         flex: 0 0 auto;
         --logo-mark-fill: var(--app-background);
         --logo-mark-ink: currentColor;
+    }
+
+    .app-brand__mark.app-logo-mark--image {
+        width: 3.25rem;
     }
 
     .app-brand__domain {
