@@ -17,7 +17,14 @@
                 </a>
 
                 @if ($user)
-                    <form method="GET" action="{{ route('dashboard') }}" class="app-header__search" role="search">
+                    <form
+                        method="GET"
+                        action="{{ route('dashboard') }}"
+                        class="app-header__search"
+                        role="search"
+                        data-search-form
+                        data-search-url="{{ route('dashboard.search') }}"
+                    >
                         <label for="app-header-search" class="sr-only">Search objects</label>
                         <input
                             id="app-header-search"
@@ -27,6 +34,10 @@
                             placeholder="Search assets"
                             class="app-header__search-input"
                             autocomplete="off"
+                            aria-autocomplete="list"
+                            aria-controls="app-header-search-results"
+                            aria-expanded="false"
+                            data-search-input
                         >
                         <button type="submit" class="app-header__search-button">
                             Search
@@ -36,6 +47,13 @@
                                 Clear
                             </a>
                         @endif
+                        <div
+                            id="app-header-search-results"
+                            class="app-header__search-results"
+                            data-search-results
+                            role="listbox"
+                            hidden
+                        ></div>
                     </form>
                 @endif
 

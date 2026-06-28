@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -19,26 +20,45 @@ class DashboardController extends Controller
         return view('dashboard', compact('items', 'search', 'canCreateFromPhoto'));
     }
 
-    private function searchItems(string $search): Collection
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('q', ''));
+
+        if ($search === '') {
+            return response()->json([
+                'results' => [],
+            ]);
+        }
+
+        $results = $this->searchItems($search, 8)
+            ->map(fn (Item $item): array => [
+                'name' => $item->name,
+                'description' => $item->description,
+                'type' => $item->typeLabel(),
+                'url' => $item->semanticUrl() ?? route('items.show', ['uuid' => $item->uuid]),
+            ])
+            ->values();
+
+        return response()->json([
+            'results' => $results,
+        ]);
+    }
+
+    private function searchItems(string $search, int $limit = 100): Collection
     {
         return Item::query()
             ->when($search !== '', function (Builder $query) use ($search) {
-                $driver = $query->getConnection()->getDriverName();
-
-                if (in_array($driver, ['mysql', 'pgsql'], true)) {
-                    $query->whereFullText(['name', 'description'], $search);
-
-                    return;
-                }
-
                 $query->where(function (Builder $likeQuery) use ($search) {
+                    $operator = $likeQuery->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+                    $like = "%{$search}%";
+
                     $likeQuery
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
+                        ->where('name', $operator, $like)
+                        ->orWhere('description', $operator, $like);
                 });
             })
             ->latest('created_at')
-            ->limit(100)
+            ->limit($limit)
             ->get(['id', 'uuid', 'name', 'slug', 'wikidata_qid', 'type_namespace', 'description', 'created_at']);
     }
 }

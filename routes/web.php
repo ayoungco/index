@@ -34,9 +34,13 @@ Route::get('auth/redirect', PostLoginRedirectController::class)
     ->middleware(['auth'])
     ->name('auth.redirect');
 
-Route::get('dashboard', DashboardController::class)
-    ->middleware(['auth'])
-    ->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+    Route::get('dashboard', DashboardController::class)
+        ->name('dashboard');
+
+    Route::get('dashboard/search', [DashboardController::class, 'search'])
+        ->name('dashboard.search');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

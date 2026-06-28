@@ -136,6 +136,32 @@ test('dashboard search filters objects from the shared header endpoint', functio
     $response->assertSee('Clear search');
 });
 
+test('dashboard ajax search returns compact object matches', function () {
+    $user = User::factory()->create();
+    $scanner = Item::factory()->create([
+        'name' => 'Scanner cradle',
+        'description' => 'Receiving desk asset',
+        'user_id' => $user->id,
+    ]);
+    Item::factory()->create([
+        'name' => 'Warehouse cart',
+        'description' => 'Back room transport',
+        'user_id' => $user->id,
+    ]);
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->getJson(route('dashboard.search', ['q' => 'scanner']));
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(1, 'results')
+        ->assertJsonPath('results.0.name', 'Scanner cradle')
+        ->assertJsonPath('results.0.description', 'Receiving desk asset')
+        ->assertJsonPath('results.0.type', 'Unclassified asset')
+        ->assertJsonPath('results.0.url', route('items.show', ['uuid' => $scanner->uuid]));
+});
+
 test('verified users can create a new item from only a photo', function () {
     Storage::fake('public');
 
