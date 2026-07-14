@@ -256,26 +256,59 @@
         white-space: nowrap;
     }
 
-    .app-description-form {
+    .app-compact-form {
         display: grid;
         max-width: 48rem;
-        gap: 0.55rem;
+        gap: 0.5rem;
         padding-top: 0.35rem;
     }
 
-    .app-description-form__row {
+    .app-compact-form__row {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         gap: 0.65rem;
         align-items: stretch;
     }
 
-    .app-description-form__field {
+    .app-compact-form__field {
         min-height: 2.75rem;
     }
 
-    .app-description-form__submit {
+    textarea.app-compact-form__field {
+        min-height: 4.5rem;
+    }
+
+    .app-compact-form__submit {
         min-width: 5.25rem;
+    }
+
+    .app-event-form {
+        display: grid;
+        max-width: 48rem;
+        gap: 0.65rem;
+        margin-top: 0.75rem;
+    }
+
+    .app-event-form__fields {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
+        gap: 0.65rem;
+        align-items: start;
+    }
+
+    textarea.app-event-form__note {
+        min-height: 4.5rem;
+    }
+
+    .app-event-form__upload {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 0.65rem;
+        border: 1px dashed var(--app-line);
+        border-radius: 0.25rem;
+        background: var(--app-surface);
+        padding: 0.65rem;
     }
 
     .app-camera-btn__body,
@@ -695,8 +728,14 @@
         }
 
         .app-quick-create__row,
-        .app-description-form__row {
+        .app-compact-form__row,
+        .app-event-form__fields,
+        .app-event-form__upload {
             grid-template-columns: 1fr;
+        }
+
+        .app-event-form__upload .app-btn {
+            width: 100%;
         }
 
         .app-header__inner {

@@ -257,7 +257,7 @@ test('verified users can update item description from the item page', function (
     expect($item->refresh()->description)->toBe('Stored in bay 4 for repair intake.');
 });
 
-test('print label offers distinct vertical and horizontal layouts', function () {
+test('print label offers detailed and compact layouts', function () {
     $item = Item::factory()->create();
 
     $this->actingAs($item->creator, 'auth0-session');
@@ -290,6 +290,27 @@ test('print label offers distinct vertical and horizontal layouts', function () 
         'index-min-label__title',
         'index-min-label__subtitle',
     ], false);
+
+    $compact = $this->get(route('items.print', ['uuid' => $item->uuid, 'layout' => 'compact']));
+
+    $compact->assertOk();
+    $compact->assertSee('index-min-label--compact', false);
+    $compact->assertSee('size: 2.25in 2.75in portrait', false);
+    $compact->assertSeeInOrder([
+        'index-min-label__qr',
+        'index-min-label__identity',
+        'index-min-label__title',
+    ], false);
+    $compact->assertDontSee('<span class="index-min-label__logo">', false);
+    $compact->assertDontSee('<div class="index-min-label__subtitle">', false);
+
+    $qr = $this->get(route('items.print', ['uuid' => $item->uuid, 'layout' => 'qr']));
+
+    $qr->assertOk();
+    $qr->assertSee('index-min-label--qr', false);
+    $qr->assertSee('size: 2in 2.25in portrait', false);
+    $qr->assertSee('Scan me');
+    $qr->assertDontSee('<div class="index-min-label__identity">', false);
 });
 
 test('item type is shown beneath the item title', function () {
@@ -414,4 +435,6 @@ test('timeline uses email when an actor has no display name', function () {
     $response->assertSee('app-header__search', false);
     $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']), false);
     $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']), false);
+    $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'compact']), false);
+    $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'qr']), false);
 });

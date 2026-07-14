@@ -26,6 +26,16 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
+        .index-min-label--compact,
+        .index-min-label--qr {
+            width: min(100%, 2.25in);
+        }
+
+        .index-min-label--compact .index-min-label__top,
+        .index-min-label--qr .index-min-label__top {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
         .index-min-label__logo,
         .index-min-label__qr,
         .index-min-label__latest {
@@ -91,6 +101,37 @@
             text-transform: uppercase;
         }
 
+        .index-min-label--compact .index-min-label__identity {
+            padding: 0.08in 0.1in 0.1in;
+            text-align: center;
+        }
+
+        .index-min-label--compact .index-min-label__title {
+            font-size: clamp(0.75rem, 6vw, 1rem);
+        }
+
+        .index-min-label--qr {
+            width: min(100%, 2in);
+            padding: 0.08in;
+            box-sizing: border-box;
+        }
+
+        .index-min-label--qr .index-min-label__qr {
+            aspect-ratio: 1 / 1;
+        }
+
+        .index-min-label__prompt {
+            display: block;
+            padding: 0.04in 0 0.02in;
+            color: #000;
+            font-size: 0.16in;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
         .index-min-label__latest img {
             object-fit: cover;
         }
@@ -110,48 +151,69 @@
 @endonce
 
 @php
-    $latestImagePath = $item->relationLoaded('events')
-        ? $item->events->firstWhere('image_path')?->image_path
-        : $item->events()->whereNotNull('image_path')->latest()->value('image_path');
-    $latestImageUrl = $latestImagePath
-        ? \Illuminate\Support\Facades\Storage::disk('public')->url($latestImagePath)
-        : null;
+    $layout = in_array($layout ?? 'vertical', ['vertical', 'horizontal', 'compact', 'qr'], true)
+        ? ($layout ?? 'vertical')
+        : 'vertical';
+    $latestImageUrl = null;
+
+    if (in_array($layout, ['vertical', 'horizontal'], true)) {
+        $latestImagePath = $item->relationLoaded('events')
+            ? $item->events->firstWhere('image_path')?->image_path
+            : $item->events()->whereNotNull('image_path')->latest()->value('image_path');
+        $latestImageUrl = $latestImagePath
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($latestImagePath)
+            : null;
+    }
 @endphp
 
-@php($layout = in_array($layout ?? 'vertical', ['vertical', 'horizontal'], true) ? ($layout ?? 'vertical') : 'vertical')
-
 <div class="index-min-label index-min-label--{{ $layout }}" aria-label="Index QR label for {{ $item->name }}">
-    <div class="index-min-label__top">
-        @if ($layout === 'vertical')
-            <span class="index-min-label__logo">
-                <x-app-logo-mark class="index-min-label__logo-mark" />
-            </span>
+    @if ($layout === 'qr')
+        <span class="index-min-label__qr">
+            {!! $qrSvg !!}
+        </span>
+        <span class="index-min-label__prompt">Scan me</span>
+    @elseif ($layout === 'compact')
+        <div class="index-min-label__top">
             <span class="index-min-label__qr">
                 {!! $qrSvg !!}
             </span>
-        @else
-            <span class="index-min-label__qr">
-                {!! $qrSvg !!}
-            </span>
-            <span class="index-min-label__logo">
-                <x-app-logo-mark class="index-min-label__logo-mark" />
-            </span>
+        </div>
+        <div class="index-min-label__identity">
+            <div class="index-min-label__title">{{ $item->name }}</div>
+        </div>
+    @else
+        <div class="index-min-label__top">
+            @if ($layout === 'vertical')
+                <span class="index-min-label__logo">
+                    <x-app-logo-mark class="index-min-label__logo-mark" />
+                </span>
+                <span class="index-min-label__qr">
+                    {!! $qrSvg !!}
+                </span>
+            @else
+                <span class="index-min-label__qr">
+                    {!! $qrSvg !!}
+                </span>
+                <span class="index-min-label__logo">
+                    <x-app-logo-mark class="index-min-label__logo-mark" />
+                </span>
+                <span class="index-min-label__latest">
+                    @if ($latestImageUrl)
+                        <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
+                    @else
+                        <span class="index-min-label__placeholder" aria-label="No photo available">?</span>
+                    @endif
+                </span>
+            @endif
+        </div>
+        <div class="index-min-label__identity">
+            <div class="index-min-label__title">{{ $item->name }}</div>
+            <div class="index-min-label__subtitle">{{ $item->typeLabel() }}</div>
+        </div>
+        @if ($layout === 'vertical' && $latestImageUrl)
             <span class="index-min-label__latest">
-                @if ($latestImageUrl)
-                    <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
-                @else
-                    <span class="index-min-label__placeholder" aria-label="No photo available">?</span>
-                @endif
+                <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
             </span>
         @endif
-    </div>
-    <div class="index-min-label__identity">
-        <div class="index-min-label__title">{{ $item->name }}</div>
-        <div class="index-min-label__subtitle">{{ $item->typeLabel() }}</div>
-    </div>
-    @if ($layout === 'vertical' && $latestImageUrl)
-        <span class="index-min-label__latest">
-            <img src="{{ $latestImageUrl }}" alt="Latest image for {{ $item->name }}" loading="lazy" decoding="async">
-        </span>
     @endif
 </div>

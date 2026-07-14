@@ -305,7 +305,7 @@ class ItemController extends Controller
             ->where('uuid', $uuid)
             ->firstOrFail();
         $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
-        $layout = in_array($request->query('layout'), ['vertical', 'horizontal'], true)
+        $layout = in_array($request->query('layout'), ['vertical', 'horizontal', 'compact', 'qr'], true)
             ? $request->query('layout')
             : 'vertical';
 

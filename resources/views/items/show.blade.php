@@ -7,31 +7,33 @@
         <div class="item-page__content">
             <div class="app-divider grid gap-3 border-b pb-4">
                 <p class="break-all text-xs">{{ $itemUrl }}</p>
-                <p class="flex flex-wrap gap-3 text-xs">
-                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']) }}">Print vertical</a>
-                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']) }}">Print horizontal</a>
-                </p>
+                <nav class="flex flex-wrap gap-x-3 gap-y-2 text-xs" aria-label="Open printable or scannable label">
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']) }}">Portrait 4 × 7</a>
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']) }}">Landscape 6 × 4</a>
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'compact']) }}">Compact 2.25 × 2.75</a>
+                    <a href="{{ route('items.print', ['uuid' => $item->uuid, 'layout' => 'qr']) }}">Scan 2 × 2.25</a>
+                </nav>
 
                 @if ($item->description)
                     <p class="app-muted max-w-3xl">{{ $item->description }}</p>
                 @endif
 
                 @if ($isAuthenticated && $canPost)
-                    <form method="POST" action="{{ route('items.update', ['uuid' => $item->uuid]) }}" class="app-description-form">
+                    <form method="POST" action="{{ route('items.update', ['uuid' => $item->uuid]) }}" class="app-compact-form">
                         @csrf
                         @method('PATCH')
 
                         <label for="item-description" class="app-form__label">Description</label>
-                        <div class="app-description-form__row">
+                        <div class="app-compact-form__row">
                             <textarea
                                 id="item-description"
                                 name="description"
                                 rows="2"
                                 maxlength="5000"
-                                class="app-field app-description-form__field"
+                                class="app-field app-compact-form__field"
                                 placeholder="Add context, condition, location, or usage notes"
                             >{{ old('description', $item->description) }}</textarea>
-                            <button type="submit" class="app-btn app-description-form__submit">Save</button>
+                            <button type="submit" class="app-btn app-compact-form__submit">Save</button>
                         </div>
                         @error('description')
                             <p class="app-notice text-xs">{{ $message }}</p>
@@ -48,7 +50,7 @@
 
             @if ($isAuthenticated)
                 <div class="app-divider mt-4 border p-4">
-                    <h2 class="app-accent text-base font-semibold">Timeline Entry</h2>
+                    <h2 class="app-accent text-base font-semibold">Add timeline entry</h2>
 
                     @if ($canPost)
                         @php
@@ -56,7 +58,7 @@
                             $nameId = 'photo-name-'.$item->id;
                         @endphp
 
-                        <form method="POST" action="{{ route('items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="app-form mt-4">
+                        <form method="POST" action="{{ route('items.events.store', ['uuid' => $item->uuid]) }}" enctype="multipart/form-data" class="app-event-form">
                             @csrf
 
                             <input
@@ -71,31 +73,32 @@
                                 class="sr-only"
                             >
 
-                            <label class="app-form__field">
-                                <span class="app-form__label">Comment <span class="app-form__optional">Optional</span></span>
-                                <textarea
-                                    name="comment"
-                                    rows="2"
-                                    maxlength="2000"
-                                    class="app-field resize-y"
-                                    placeholder="Optional timeline note"
-                                >{{ old('comment') }}</textarea>
-                            </label>
+                            <div class="app-event-form__fields">
+                                <label class="app-form__field">
+                                    <span class="app-form__label">Note <span class="app-form__optional">Optional</span></span>
+                                    <textarea
+                                        name="comment"
+                                        rows="2"
+                                        maxlength="2000"
+                                        class="app-field app-event-form__note"
+                                        placeholder="Condition, location, handoff, or other update"
+                                    >{{ old('comment') }}</textarea>
+                                </label>
 
-                            <label class="app-form__field">
-                                <span class="app-form__label">Tags <span class="app-form__optional">Optional</span></span>
-                                <input
-                                    type="text"
-                                    name="tags"
-                                    value="{{ old('tags') }}"
-                                    maxlength="500"
-                                    class="app-field"
-                                    placeholder="handoff, warehouse-a, fragile"
-                                >
-                                <span class="app-form__hint">Separate tags with commas.</span>
-                            </label>
+                                <label class="app-form__field">
+                                    <span class="app-form__label">Tags <span class="app-form__optional">Optional</span></span>
+                                    <input
+                                        type="text"
+                                        name="tags"
+                                        value="{{ old('tags') }}"
+                                        maxlength="500"
+                                        class="app-field"
+                                        placeholder="handoff, bay-4, fragile"
+                                    >
+                                </label>
+                            </div>
 
-                            <div class="app-form__upload">
+                            <div class="app-event-form__upload">
                                 <button
                                     id="photo-trigger-{{ $item->id }}"
                                     type="button"
@@ -108,10 +111,8 @@
                                     </span>
                                     Add photo
                                 </button>
-                                <span id="{{ $nameId }}" class="app-muted text-xs">No file selected</span>
+                                <span id="{{ $nameId }}" class="app-muted text-xs">No file selected. Maximum {{ \App\Support\UploadLimits::label() }}.</span>
                             </div>
-
-                            <p class="app-form__hint">Upload starts automatically. Maximum {{ \App\Support\UploadLimits::label() }}.</p>
 
                             <noscript>
                                 <label class="grid gap-1">
@@ -139,7 +140,7 @@
                             @enderror
 
                             <div class="hidden" data-js-submit-fallback="{{ $item->id }}">
-                                <button type="submit" class="app-btn app-btn">
+                                <button type="submit" class="app-btn">
                                     Add Photo
                                 </button>
                             </div>
