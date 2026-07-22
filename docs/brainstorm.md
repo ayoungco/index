@@ -18,7 +18,12 @@ Raw ideas, sorted by implementation leverage — things closest to the core prod
 
 ## QR and label
 
-- [ ] Item creation flow without scanning: create item manually, print QR label, apply it to the object later
+- [x] Print a pre-initialization QR label sheet: generate 1–30 UUID URLs without creating Item records, apply labels, then initialize on first scan
+- [ ] Consolidate the dashboard's creation paths under one “Add object” choice: create from photo or print labels first
+- [ ] Add a one-label calibration print and optional horizontal/vertical offsets before printing a full sheet
+- [ ] Add UUID matching to dashboard search so a label can be looked up directly
+- [ ] Simplify item-level printing to a default “Print label” action with alternate sizes behind a disclosure
+- [ ] Allow bare item initialization without a required photo, so a label can be claimed when documentation must happen later
 - [ ] Zebra label maker integration: https://zsbportal.zebra.com/designer
 - [ ] Avery diskette labels from CTI: https://app.print.avery.com/
 - [ ] Demo scanning behavior via vertical shortform video (Instagram/TikTok) for product discovery

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\PostLoginRedirectController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\LabelSheetController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RelationController;
@@ -58,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('items/from-photo', [ItemController::class, 'storeFromPhoto'])
         ->middleware(['auth0.verified'])
         ->name('items.from-photo.store');
+
+    Route::get('labels/print', [LabelSheetController::class, 'create'])->name('labels.create');
+    Route::post('labels/print', [LabelSheetController::class, 'print'])->name('labels.print');
 });
 
 require __DIR__.'/auth.php';

@@ -62,6 +62,16 @@
         </div>
 
         <div class="app-panel">
+            <div class="app-divider flex items-center justify-between gap-4 border-b px-4 py-3">
+                <div>
+                    <h2 class="app-muted text-sm font-semibold uppercase tracking-[0.2em]">Label sheets</h2>
+                    <p class="app-muted mt-1 text-xs">Print QR labels now; register each object after it is applied.</p>
+                </div>
+                <a href="{{ route('labels.create') }}" class="app-btn">Print labels</a>
+            </div>
+        </div>
+
+        <div class="app-panel">
             <div class="app-divider border-b px-4 py-3">
                 <h2 class="app-muted text-sm font-semibold uppercase tracking-[0.2em]">
                     {{ $search !== '' ? 'Search Results' : 'Existing Objects' }}
