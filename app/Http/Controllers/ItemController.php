@@ -8,7 +8,6 @@ use App\Models\ItemEvent;
 use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
-use App\Services\UploadedImageStorage;
 use App\Services\Wikidata;
 use App\Support\AuthRedirect;
 use App\Support\UploadLimits;
@@ -28,7 +27,6 @@ class ItemController extends Controller
         private readonly QrVerificationService $qrVerification,
         private readonly QrCodeRenderService $qrRenderer,
         private readonly Wikidata $wikidata,
-        private readonly UploadedImageStorage $uploadedImageStorage,
     ) {}
 
     public function show(Request $request, string $uuid): View
@@ -131,15 +129,7 @@ class ItemController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        try {
-            $relativePath = $this->imageCompression->compressAndStore($validated['photo'], $uuid);
-        } catch (\Throwable $exception) {
-            logger()->warning('Image compression failed on init photo, storing original.', [
-                'uuid' => $uuid,
-                'error' => $exception->getMessage(),
-            ]);
-            $relativePath = $this->uploadedImageStorage->storeOriginal($validated['photo'], 'items/'.$uuid);
-        }
+        $relativePath = $this->storePhotoForItem($validated['photo'], $uuid);
 
         ItemEvent::query()->create([
             'item_id' => $item->id,
@@ -320,16 +310,7 @@ class ItemController extends Controller
 
     private function storePhotoForItem(UploadedFile $photo, string $uuid): string
     {
-        try {
-            return $this->imageCompression->compressAndStore($photo, $uuid);
-        } catch (\Throwable $exception) {
-            logger()->warning('Image compression failed, storing original upload.', [
-                'uuid' => $uuid,
-                'error' => $exception->getMessage(),
-            ]);
-
-            return $this->uploadedImageStorage->storeOriginal($photo, 'items/'.$uuid);
-        }
+        return $this->imageCompression->compressAndStore($photo, $uuid);
     }
 
     private function nameFromPhoto(UploadedFile $photo, string $uuid): string
@@ -402,7 +383,7 @@ class ItemController extends Controller
             'comment' => $event->comment,
             'tags' => $event->tags,
             'image_path' => $event->image_path,
-            'image_url' => $event->image_path ? Storage::disk('public')->url($event->image_path) : null,
+            'image_url' => $event->image_path ? route('media.show', ['path' => $event->image_path]) : null,
             'is_qr_verified' => $event->is_qr_verified,
         ]);
 

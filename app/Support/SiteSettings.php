@@ -51,7 +51,7 @@ class SiteSettings
             && $settings['background_color'] === self::DEFAULT_BACKGROUND_COLOR
             && $settings['highlight_color'] === self::DEFAULT_HIGHLIGHT_COLOR;
         $settings['logo_url'] = ($settings['logo_path'] ?? null)
-            ? asset('storage/'.$settings['logo_path'])
+            ? $this->mediaUrl($settings['logo_path'])
             : asset('index-h.svg');
 
         return $this->settings = $settings;
@@ -104,7 +104,7 @@ class SiteSettings
         }
 
         return $path
-            ? asset('storage/'.$path)
+            ? $this->mediaUrl($path)
             : asset('index-h.svg');
     }
 
@@ -132,6 +132,11 @@ class SiteSettings
         }
 
         return rtrim($url, '/');
+    }
+
+    private function mediaUrl(string $path): string
+    {
+        return url('/media/'.ltrim($path, '/'));
     }
 
     private function environmentUrl(): string

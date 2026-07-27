@@ -22,7 +22,7 @@ test('home page is available without running an installer', function () {
 });
 
 test('authenticated users can update site settings from the admin screen', function () {
-    Storage::fake('public');
+    Storage::fake('uploads');
 
     $user = User::factory()->create();
 
@@ -47,18 +47,18 @@ test('authenticated users can update site settings from the admin screen', funct
     expect(app(SiteSettings::class)->get('primary_color'))->toBe('#101010');
 
     $logoPath = AppSetting::query()->where('key', 'logo_path')->value('value');
-    Storage::disk('public')->assertExists($logoPath);
+    Storage::disk('uploads')->assertExists($logoPath);
 
     $dashboard = $this->actingAs($user)->get(route('dashboard'));
 
     $dashboard->assertOk();
-    $dashboard->assertSee(asset('storage/'.$logoPath), false);
+    $dashboard->assertSee(route('media.show', ['path' => $logoPath]), false);
 
     $item = \App\Models\Item::factory()->create(['user_id' => $user->id]);
     $print = $this->actingAs($user, 'auth0-session')->get(route('items.print', ['uuid' => $item->uuid]));
 
     $print->assertOk();
-    $print->assertSee(asset('storage/'.$logoPath), false);
+    $print->assertSee(route('media.show', ['path' => $logoPath]), false);
     $print->assertDontSee('aria-label="Index logo"', false);
 });
 

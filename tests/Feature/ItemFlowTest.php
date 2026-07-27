@@ -15,21 +15,16 @@ beforeEach(function () {
     installApplication();
 });
 
-test('guest sees login prompt for unknown uuid', function () {
+test('guests are redirected to Auth0 before viewing an item', function () {
     $uuid = (string) Str::uuid();
-    $expectedReturnTo = route('items.show', ['uuid' => $uuid], true);
-
     $response = $this->get('/'.$uuid);
 
-    $response->assertOk();
-    $response->assertSee('Object Not Initialized');
-    $response->assertSee('Login With Auth0');
-    $response->assertSee(route('login', ['returnTo' => $expectedReturnTo], true), false);
-    $response->assertSessionHas('auth.scanned_item_url', $expectedReturnTo);
+    $response->assertRedirect(route('login'));
 });
 
-test('guest sees timeline images behind an on-demand disclosure', function () {
+test('authenticated users see timeline images behind an on-demand disclosure', function () {
     $item = Item::factory()->create();
+    $this->actingAs($item->creator, 'auth0-session');
     $item->events()->create([
         'user_id' => $item->user_id,
         'image_path' => 'items/'.$item->uuid.'/photo.jpg',
@@ -45,14 +40,15 @@ test('guest sees timeline images behind an on-demand disclosure', function () {
     $response->assertSee('Timeline');
     $response->assertSee('Shelf check complete.');
     $response->assertSee('Show image');
-    $response->assertSee('data-src="'.Storage::disk('public')->url('items/'.$item->uuid.'/photo.jpg').'"', false);
+    $response->assertSee('data-src="'.route('media.show', ['path' => 'items/'.$item->uuid.'/photo.jpg']).'"', false);
     expect(preg_match('/<details[^>]*data-timeline-image.*?<img\s+src=/s', $response->getContent()))->toBe(0);
     $response->assertSee('Latest image for '.$item->name);
     $response->assertDontSee('Add Photo Event');
 });
 
-test('guest item access is recorded as anonymous timeline activity', function () {
+test('authenticated item access is recorded for the signed-in user', function () {
     $item = Item::factory()->create();
+    $this->actingAs($item->creator, 'auth0-session');
 
     $response = $this
         ->withHeader('User-Agent', 'Mozilla/5.0 Version/17.0 Mobile/15E148 Safari/604.1')
@@ -66,17 +62,17 @@ test('guest item access is recorded as anonymous timeline activity', function ()
     $response->assertSeeInOrder([
         '<td class="compose-log__rail-cell"',
         '<time class="compose-log__time"',
-        '<span class="compose-log__source">Anonymous</span>',
+        '<span class="compose-log__source">'.$item->creator->displayLabel().'</span>',
         '<span class="compose-log__message">Object accessed | from New York, United States using Safari</span>',
     ], false);
     $response->assertSeeInOrder([
-        '<span class="compose-log__source">Anonymous</span>',
+        '<span class="compose-log__source">'.$item->creator->displayLabel().'</span>',
         'Object accessed | from New York, United States using Safari',
     ], false);
 
     $this->assertDatabaseHas('item_accesses', [
         'item_id' => $item->id,
-        'user_id' => null,
+        'user_id' => $item->creator->id,
         'city' => 'New York',
         'country' => 'United States',
         'country_code' => 'US',
@@ -163,7 +159,7 @@ test('dashboard ajax search returns compact object matches', function () {
 });
 
 test('verified users can create a new item from only a photo', function () {
-    Storage::fake('public');
+    Storage::fake('uploads');
 
     $user = User::factory()->create();
 
@@ -172,7 +168,7 @@ test('verified users can create a new item from only a photo', function () {
             ->once()
             ->andReturnUsing(function (UploadedFile $_photo, string $uuid): string {
                 $path = 'items/'.$uuid.'/photo.jpg';
-                Storage::disk('public')->put($path, 'compressed-photo');
+                Storage::disk('uploads')->put($path, 'compressed-photo');
 
                 return $path;
             });
@@ -209,11 +205,11 @@ test('verified users can create a new item from only a photo', function () {
     expect($event->image_path)->toBe('items/'.$item->uuid.'/photo.jpg');
     expect($event->comment)->toBeNull();
     expect($event->is_qr_verified)->toBeFalse();
-    Storage::disk('public')->assertExists($event->image_path);
+    Storage::disk('uploads')->assertExists($event->image_path);
 });
 
 test('scanned uuid initialization uses the photo filename when name is blank', function () {
-    Storage::fake('public');
+    Storage::fake('uploads');
 
     $user = User::factory()->create();
     $uuid = (string) Str::uuid();
@@ -318,6 +314,8 @@ test('item type is shown beneath the item title', function () {
         'type_namespace' => 'medical-device',
     ]);
 
+    $this->actingAs($item->creator, 'auth0-session');
+
     $response = $this->get('/'.$item->uuid);
 
     $response->assertOk();
@@ -325,8 +323,8 @@ test('item type is shown beneath the item title', function () {
     $response->assertSee('Medical Device');
 });
 
-test('the image processor writes a generated jpeg to the public disk', function () {
-    Storage::fake('public');
+test('the image processor writes a generated jpeg to the private upload disk', function () {
+    Storage::fake('uploads');
 
     $uuid = (string) Str::uuid();
     $photo = UploadedFile::fake()->image('source.png', 1200, 800);
@@ -334,12 +332,12 @@ test('the image processor writes a generated jpeg to the public disk', function 
     $path = app(ImageCompressionService::class)->compressAndStore($photo, $uuid);
 
     expect($path)->toStartWith('items/'.$uuid.'/')->toEndWith('.jpg');
-    Storage::disk('public')->assertExists($path);
-    expect(Storage::disk('public')->size($path))->toBeGreaterThan(0);
+    Storage::disk('uploads')->assertExists($path);
+    expect(Storage::disk('uploads')->size($path))->toBeGreaterThan(0);
 });
 
-test('the original-image fallback always stores an explicit extension', function () {
-    Storage::fake('public');
+test('a photo is rejected when it cannot be decoded and re-encoded safely', function () {
+    Storage::fake('uploads');
 
     $item = Item::factory()->create();
     $user = $item->creator;
@@ -356,11 +354,9 @@ test('the original-image fallback always stores an explicit extension', function
         'photo' => UploadedFile::fake()->image('fallback.jpeg'),
     ]);
 
-    $event = $item->events()->sole();
-
     $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
-    expect($event->image_path)->toMatch('/^items\/'.$item->uuid.'\/[0-9a-f-]+\.jpg$/');
-    Storage::disk('public')->assertExists($event->image_path);
+    $response->assertSessionHas('status', 'Upload failed due to a temporary connection issue. Please try again.');
+    expect($item->events()->count())->toBe(0);
 });
 
 test('oversized timeline photos return a visible validation error', function () {

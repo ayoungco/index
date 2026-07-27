@@ -161,7 +161,7 @@
             ? $item->events->firstWhere('image_path')?->image_path
             : $item->events()->whereNotNull('image_path')->latest()->value('image_path');
         $latestImageUrl = $latestImagePath
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($latestImagePath)
+            ? route('media.show', ['path' => $latestImagePath])
             : null;
     }
 @endphp

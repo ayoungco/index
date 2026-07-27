@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Item;
+use App\Models\User;
 use App\Services\Wikidata;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -8,6 +9,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     installApplication();
+    $this->actingAs(User::factory()->create(), 'auth0-session');
 
     $fake = Mockery::mock(Wikidata::class);
     $fake->shouldReceive('entityBasics')

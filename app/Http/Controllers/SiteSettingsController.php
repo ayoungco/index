@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ImageCompressionService;
 use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SiteSettingsController extends Controller
 {
-    public function __construct(private readonly SiteSettings $siteSettings) {}
+    public function __construct(
+        private readonly SiteSettings $siteSettings,
+        private readonly ImageCompressionService $imageCompression,
+    ) {}
 
     public function edit(): View
     {
@@ -38,20 +41,21 @@ class SiteSettingsController extends Controller
         $logoPath = $this->siteSettings->get('logo_path');
 
         if ($request->boolean('remove_logo') && $logoPath) {
+            Storage::disk('uploads')->delete($logoPath);
             Storage::disk('public')->delete($logoPath);
             $logoPath = null;
         }
 
         if ($request->hasFile('logo')) {
             if ($logoPath) {
+                Storage::disk('uploads')->delete($logoPath);
                 Storage::disk('public')->delete($logoPath);
             }
 
-            $extension = $request->file('logo')->getClientOriginalExtension() ?: 'png';
-            $logoPath = $request->file('logo')->storeAs(
+            $logoPath = $this->imageCompression->compressAndStore(
+                $request->file('logo'),
+                (string) \Illuminate\Support\Str::uuid(),
                 'branding',
-                'site-logo-'.Str::uuid().'.'.$extension,
-                'public',
             );
         }
 

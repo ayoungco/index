@@ -3,16 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Thing;
-use App\Services\UploadedImageStorage;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ThingController extends Controller
 {
     public function __construct(
-        private readonly UploadedImageStorage $uploadedImageStorage,
+        private readonly ImageCompressionService $imageCompression,
     ) {}
 
     /**
@@ -96,7 +95,11 @@ class ThingController extends Controller
             'photo' => ['required', 'image', 'max:10240'],
         ]);
 
-        $storedPath = $this->uploadedImageStorage->storeOriginal($validated['photo'], 'thing-scans');
+        $storedPath = $this->imageCompression->compressAndStore(
+            $validated['photo'],
+            (string) Str::uuid(),
+            'thing-scans',
+        );
 
         $this->appendThingSessionHistory($request, $thing->id, [
             'type' => 'scan.photo_added',
@@ -104,7 +107,7 @@ class ThingController extends Controller
             'description' => 'A photo was attached right after scanning this QR.',
             'occurred_at' => now()->toIso8601String(),
             'scan_id' => $activeScan['scan_id'] ?? null,
-            'photo_url' => Storage::disk('public')->url($storedPath),
+            'photo_url' => route('media.show', ['path' => $storedPath]),
             'photo_path' => $storedPath,
         ]);
 

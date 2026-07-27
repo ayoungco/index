@@ -63,6 +63,19 @@ curl -I https://index.ayoung.co/storage/items/{uuid}/{image-uuid}.jpg
 directory. A missing or stale link causes uploaded files to return HTTP 404 even
 when image processing and storage succeeded.
 
+### Upload security
+
+All uploads are decoded and re-encoded as application-generated JPEG files before
+they are written outside the public web root. They are available only from the
+authenticated `/media/...` application route; original uploaded bytes are never
+served. Legacy public-storage files are also read only through that route. Keep
+all direct `/storage` requests blocked at the web-server layer. Apache deployments
+receive this protection from `storage/app/public/.htaccess`; for Nginx, add:
+
+```nginx
+location ^~ /storage/ { return 404; }
+```
+
 ## Use cases
 
 - Upcycling and repurposing materials

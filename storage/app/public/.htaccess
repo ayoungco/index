@@ -1,0 +1,10 @@
+# Legacy files in this directory are served only through the authenticated media
+# route. Keep direct requests out of the web server.
+Options -ExecCGI
+Require all denied
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phar
+
+<FilesMatch "\.(?:php[0-9s]?|phtml|phar)$">
+    Require all denied
+</FilesMatch>

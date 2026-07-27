@@ -6,6 +6,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LabelSheetController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ProtectedMediaController;
 use App\Http\Controllers\RelationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SiteSettingsController;
@@ -22,7 +23,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::prefix('wd')->name('wikidata.')->group(function () {
+Route::middleware(['auth0.authenticate'])->prefix('wd')->name('wikidata.')->group(function () {
     Route::get('/item/{qid}', [WikidataThingController::class, 'show'])
         ->where('qid', 'Q[0-9]+')
         ->name('item.show');
@@ -66,6 +67,11 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/auth.php';
 
+Route::get('media/{path}', [ProtectedMediaController::class, 'show'])
+    ->where('path', '.*')
+    ->middleware(['auth0.authenticate'])
+    ->name('media.show');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/{uuid}/print', [ItemController::class, 'print'])
         ->whereUuid('uuid')
@@ -93,12 +99,15 @@ Route::get('/{namespace}/{slug}', [ItemController::class, 'showBySemantic'])
         'namespace' => '^(?!auth$|dashboard$|settings$|things$|properties$|relations$|messages$|wd$)[A-Za-z][A-Za-z0-9-]*$',
         'slug' => '[A-Za-z0-9\-\._~%]+',
     ])
+    ->middleware(['auth0.authenticate'])
     ->name('items.semantic.show');
 
 Route::get('/{slug}', [ThingController::class, 'showBySlug'])
     ->where('slug', '^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$)(?!dashboard$|settings$|things$|properties$|relations$|messages$)[A-Za-z0-9\-\._~%]+$')
+    ->middleware(['auth0.authenticate'])
     ->name('things.show-by-slug');
 
 Route::get('/{uuid}', [ItemController::class, 'show'])
     ->whereUuid('uuid')
+    ->middleware(['auth0.authenticate'])
     ->name('items.show');

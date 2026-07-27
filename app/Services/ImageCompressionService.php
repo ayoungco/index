@@ -11,10 +11,10 @@ use RuntimeException;
 
 class ImageCompressionService
 {
-    public function compressAndStore(UploadedFile $file, string $uuid): string
+    public function compressAndStore(UploadedFile $file, string $uuid, ?string $directory = null): string
     {
-        $disk = Storage::disk('public');
-        $directory = 'items/'.$uuid;
+        $disk = Storage::disk('uploads');
+        $directory ??= 'items/'.$uuid;
         $disk->makeDirectory($directory);
 
         $filename = Str::uuid().'.jpg';
@@ -36,7 +36,9 @@ class ImageCompressionService
             }
         }
 
-        // Fallback to native extensions when Intervention Image is unavailable.
+        // Re-encode every upload as JPEG. Never preserve an uploaded file as-is:
+        // files on the private upload disk must be application-generated images.
+        // This is also an image decoder fallback when Intervention Image is unavailable.
         if (class_exists(\Imagick::class)) {
             $image = new \Imagick($file->getRealPath());
             $image->setImageOrientation(\Imagick::ORIENTATION_TOPLEFT);
