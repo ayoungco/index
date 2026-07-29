@@ -4,24 +4,27 @@
 
 # index
 
-- Provide a dashboard for everything, at a meaningful URL
-- Useful core information for each as well as hyperlinks to other commonly used services. A table of contents.
+index is a private, QR-first registry for real-world objects. A printed QR label
+contains a permanent UUID URL. Scanning that label opens the local record for the
+specific object—not a generic product page—where authenticated operators can add
+photos, notes, scan locations, and custody context.
 
-- track your stuff
-- attach notes to things
-- comment on things
-- a homepage for everything you own, manage, or care about
+Wikidata supplies the conceptual layer. An operator can link an item to a QID,
+which enriches the local record and derives a useful namespace such as
+`/element/oxygen-tank-shelf-3`. The local UUID remains the durable physical
+anchor; the semantic URL is a convenient alias.
 
-- catalog your things
-- tag and relate them
-- find them quickly
-- share them securely
+## Core workflow
 
-# Features
+1. Print a UUID QR label and attach it to an object.
+2. Scan it and authenticate with Auth0.
+3. Claim the object, add local metadata and a Wikidata category.
+4. Record photos, selected featured media, and optional device location.
+5. Return to the same UUID whenever the physical object is handled.
 
-- reference for chemical subtances, ingredients, and materials
-- product and manufacturer database
-- a location tracking asset scanner
+Object records and media are private. The dashboard is the authenticated homepage
+for finding records and their featured photos; every timeline actor displays their
+total scan count.
 
 ## Installation
 
@@ -32,31 +35,21 @@ See docs/INSTALL.md for installation instructions.
 Uploaded images are processed into JPEGs and written to:
 
 ```text
-storage/app/public/items/{uuid}/{image-uuid}.jpg
+storage/app/private/uploads/items/{uuid}/{image-uuid}.jpg
 ```
 
-The public `/storage/...` URL requires Laravel's storage link. Run this from the
-Forge site directory after each deployment:
-
-```bash
-php artisan storage:link
-```
-
-A typical Forge deployment script should also include:
+No `storage:link` is needed for uploads. A typical Forge deployment script should
+ensure Laravel can write the private storage directory:
 
 ```bash
 chmod -R ug+rwX storage bootstrap/cache
-php artisan storage:link
 php artisan config:clear
 ```
 
 Verify the link, saved file, and web-server access with:
 
 ```bash
-ls -ld storage/app/public public/storage
-readlink -f public/storage
-find storage/app/public/items -type f | tail -n 5
-curl -I https://index.ayoung.co/storage/items/{uuid}/{image-uuid}.jpg
+find storage/app/private/uploads/items -type f | tail -n 5
 ```
 
 `public/storage` must resolve to the current site's `storage/app/public`
