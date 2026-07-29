@@ -36,7 +36,7 @@ class ProtectedMediaController extends Controller
     private function isAllowedPath(string $path): bool
     {
         return (bool) preg_match(
-            '#^(?:items/[a-f0-9-]+/|thing-scans/|branding/)[a-f0-9-]+\.(?:jpe?g|png|webp|gif|heic|heif)$#i',
+            '#^(?:items/[a-f0-9-]+/|thing-scans/|branding/(?:site-logo-)?)[a-f0-9-]+\.(?:jpe?g|png|webp|gif|heic|heif)$#i',
             $path,
         );
     }
