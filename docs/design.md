@@ -1,12 +1,17 @@
-# index — Design Document
+# index — Architecture
 
-A living specification. High-level system overview, architecture rationale, and active design decisions.
+This is the technical shape of index. Read [Product model](product.md) for the
+user-facing purpose, [Operations](operations.md) for deployment and browser
+constraints, [Roadmap](roadmap.md) for planned work, and [Decision log](decisions.md)
+for constraints on future work.
 
 ---
 
 ## What index is
 
-index is a QR-anchored physical object registry. A QR code printed on any real-world object is the primary entry point to that object's metadata. The QR encodes a UUID URL. Scanning it lands on a page that combines:
+index is a private QR-anchored physical object registry. A QR code printed on any
+real-world object is the primary entry point to that object's metadata. The QR
+encodes a UUID URL. Scanning it lands on an Auth0-protected page that combines:
 
 - **Local operational data** — who registered it, where it's been, who's accessed it, photos
 - **Wikidata-derived conceptual data** — what kind of thing it *is*, pulled from the public knowledge graph
@@ -39,7 +44,7 @@ Three distinct identity types coexist without collision:
 | Layer | Identifier | Example URL | Purpose |
 |---|---|---|---|
 | Physical instance | UUID | `/550e8400-…` | Immutable QR anchor; always resolves |
-| Local semantic | slug | `/thing/oxygen-tank-shelf-3` | Human-readable local reference |
+| Local semantic | slug | `/element/oxygen-tank-shelf-3` | Human-readable local reference |
 | Wikidata concept | QID | `/wd/Q629` | Shared public knowledge about a concept |
 
 A single item may have all three: a UUID, a user-given slug, and a linked Wikidata QID. They are not interchangeable.
@@ -99,7 +104,7 @@ user_id         — creator/owner
 /{uuid}/events               → ItemController::addPhoto   — photo upload
 
 /{namespace}/{slug}          → ItemController::showBySemantic — enriched semantic page
-/{slug}                      → ThingController::showBySlug    — legacy; migrate to Item
+/{snake_case_identifier}     → ItemController::showByIdentifier — local alias
 
 /wd/item/{qid}               → WikidataThingController::show  — concept reference page
 /wd/type/{type}              → WikidataTypeController::index  — concept type browser
@@ -142,7 +147,7 @@ Trigger for migration to dump backend: sustained public endpoint rate limit hits
 - **Theme defaults:** black on white with International Orange (`#ff4f00`) as the highlight. The untouched default follows browser light/dark mode and becomes white on black in dark mode.
 - **Archive:** previous faux CRT and themed interface studies are retained under `docs/examples/` and `docs/context/`, outside the application runtime.
 - **QR label:** brutally simple — index logo, QR code, inverted bold title block. Shared Blade partial; print and item page use the same partial identically.
-- **Breadcrumbs:** each item page shows its hierarchical context, e.g., `index > element > oxygen > oxygen-tank-shelf-3`.
+- **Breadcrumbs:** planned only after local relationships establish a truthful hierarchy.
 
 ---
 
