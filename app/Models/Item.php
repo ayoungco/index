@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Item extends Model
@@ -59,5 +60,20 @@ class Item extends Model
     public function accesses(): HasMany
     {
         return $this->hasMany(ItemAccess::class)->latest();
+    }
+
+    public function featuredEvent(): BelongsTo
+    {
+        return $this->belongsTo(ItemEvent::class, 'featured_event_id');
+    }
+
+    public function latestPhoto(): HasOne
+    {
+        return $this->hasOne(ItemEvent::class)->latestOfMany('created_at');
+    }
+
+    public function featuredPhotoPath(): ?string
+    {
+        return $this->featuredEvent?->image_path ?? $this->latestPhoto?->image_path;
     }
 }

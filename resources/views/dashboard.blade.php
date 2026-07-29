@@ -98,6 +98,11 @@
                     @foreach($items as $item)
                         <li class="px-4 py-3">
                             @php $semanticUrl = $item->semanticUrl(); @endphp
+                            @if ($item->featuredPhotoPath())
+                                <a href="{{ $semanticUrl ?? route('items.show', ['uuid' => $item->uuid]) }}" class="mb-3 block">
+                                    <img src="{{ route('media.show', ['path' => $item->featuredPhotoPath()]) }}" alt="Featured photo for {{ $item->name }}" class="max-h-48 w-full rounded object-cover" loading="lazy" decoding="async">
+                                </a>
+                            @endif
                             <a
                                 href="{{ $semanticUrl ?? route('items.show', ['uuid' => $item->uuid]) }}"
                                 class="app-accent text-sm hover:underline"

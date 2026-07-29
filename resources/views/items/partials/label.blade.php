@@ -157,9 +157,9 @@
     $latestImageUrl = null;
 
     if (in_array($layout, ['vertical', 'horizontal'], true)) {
-        $latestImagePath = $item->relationLoaded('events')
+        $latestImagePath = $item->featuredPhotoPath() ?? ($item->relationLoaded('events')
             ? $item->events->firstWhere('image_path')?->image_path
-            : $item->events()->whereNotNull('image_path')->latest()->value('image_path');
+            : $item->events()->whereNotNull('image_path')->latest()->value('image_path'));
         $latestImageUrl = $latestImagePath
             ? route('media.show', ['path' => $latestImagePath])
             : null;

@@ -89,6 +89,16 @@ Route::post('/{uuid}/events', [ItemController::class, 'addPhoto'])
     ->middleware(['auth0.authenticate', 'auth0.verified'])
     ->name('items.events.store');
 
+Route::post('/{uuid}/featured-photo/{event}', [ItemController::class, 'featurePhoto'])
+    ->whereUuid('uuid')
+    ->middleware(['auth0.authenticate', 'auth0.verified'])
+    ->name('items.featured-photo.update');
+
+Route::post('/{uuid}/location', [ItemController::class, 'recordLocation'])
+    ->whereUuid('uuid')
+    ->middleware(['auth0.authenticate'])
+    ->name('items.location.store');
+
 Route::patch('/{uuid}', [ItemController::class, 'update'])
     ->whereUuid('uuid')
     ->middleware(['auth0.authenticate', 'auth0.verified'])
@@ -97,10 +107,15 @@ Route::patch('/{uuid}', [ItemController::class, 'update'])
 Route::get('/{namespace}/{slug}', [ItemController::class, 'showBySemantic'])
     ->where([
         'namespace' => '^(?!auth$|dashboard$|settings$|things$|properties$|relations$|messages$|wd$)[A-Za-z][A-Za-z0-9-]*$',
-        'slug' => '[A-Za-z0-9\-\._~%]+',
+        'slug' => '[A-Za-z0-9_\-\._~%]+',
     ])
     ->middleware(['auth0.authenticate'])
     ->name('items.semantic.show');
+
+Route::get('/{identifier}', [ItemController::class, 'showByIdentifier'])
+    ->where('identifier', '[A-Za-z][A-Za-z0-9_]*_[A-Za-z0-9_]+')
+    ->middleware(['auth0.authenticate'])
+    ->name('items.identifier.show');
 
 Route::get('/{slug}', [ThingController::class, 'showBySlug'])
     ->where('slug', '^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$)(?!dashboard$|settings$|things$|properties$|relations$|messages$)[A-Za-z0-9\-\._~%]+$')

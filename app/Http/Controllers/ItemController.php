@@ -8,6 +8,7 @@ use App\Models\ItemEvent;
 use App\Services\ImageCompressionService;
 use App\Services\QrCodeRenderService;
 use App\Services\QrVerificationService;
+use App\Services\ReverseGeocoder;
 use App\Services\Wikidata;
 use App\Support\AuthRedirect;
 use App\Support\UploadLimits;
@@ -27,6 +28,7 @@ class ItemController extends Controller
         private readonly QrVerificationService $qrVerification,
         private readonly QrCodeRenderService $qrRenderer,
         private readonly Wikidata $wikidata,
+        private readonly ReverseGeocoder $reverseGeocoder,
     ) {}
 
     public function show(Request $request, string $uuid): View
@@ -35,7 +37,7 @@ class ItemController extends Controller
         $user = $request->user();
         $item = Item::query()
             ->where('uuid', $uuid)
-            ->with(['creator', 'events.author', 'accesses.user'])
+            ->with(['creator', 'featuredEvent', 'latestPhoto', 'events.author', 'accesses.user'])
             ->first();
 
         if (! $item) {
@@ -54,7 +56,7 @@ class ItemController extends Controller
 
         if (! $user) {
             $this->recordAccess($request, $item);
-            $item->load(['events.author', 'accesses.user']);
+            $item->load(['featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
 
             $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
             $wikidata = $this->wikidataSummaryFor($item);
@@ -71,7 +73,7 @@ class ItemController extends Controller
         }
 
         $this->recordAccess($request, $item);
-        $item->load(['events.author', 'accesses.user']);
+        $item->load(['featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
 
         $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
         $wikidata = $this->wikidataSummaryFor($item);
@@ -92,7 +94,16 @@ class ItemController extends Controller
     {
         $item = Item::query()
             ->where('type_namespace', $namespace)
-            ->where('slug', urldecode($slug))
+            ->where('slug', str_replace('_', '-', urldecode($slug)))
+            ->firstOrFail();
+
+        return $this->show($request, $item->uuid);
+    }
+
+    public function showByIdentifier(Request $request, string $identifier): View
+    {
+        $item = Item::query()
+            ->where('slug', str_replace('_', '-', $identifier))
             ->firstOrFail();
 
         return $this->show($request, $item->uuid);
@@ -238,7 +249,7 @@ class ItemController extends Controller
 
             $relativePath = $this->storePhotoForItem($validated['photo'], $uuid);
 
-            $absolutePath = storage_path('app/public/'.$relativePath);
+            $absolutePath = Storage::disk('uploads')->path($relativePath);
             $isQrVerified = false;
 
             if (is_file($absolutePath)) {
@@ -308,6 +319,53 @@ class ItemController extends Controller
         ]);
     }
 
+    public function featurePhoto(Request $request, string $uuid, ItemEvent $event): RedirectResponse
+    {
+        $item = Item::query()->where('uuid', $uuid)->firstOrFail();
+        abort_unless($event->item_id === $item->id && filled($event->image_path), 404);
+
+        $item->forceFill(['featured_event_id' => $event->id])->save();
+
+        return redirect()->route('items.show', ['uuid' => $uuid])
+            ->with('status', 'Featured photo updated.')
+            ->with('statusType', 'notice');
+    }
+
+    public function recordLocation(Request $request, string $uuid): RedirectResponse
+    {
+        $item = Item::query()->where('uuid', $uuid)->firstOrFail();
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'room' => ['nullable', 'string', 'max:120'],
+            'container' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        try {
+            $place = $this->reverseGeocoder->lookup((float) $validated['latitude'], (float) $validated['longitude']);
+        } catch (\Throwable $exception) {
+            logger()->warning('Reverse geocoding failed for item scan.', ['uuid' => $uuid, 'error' => $exception->getMessage()]);
+            $place = ['address' => null, 'city' => null, 'country' => null, 'country_code' => null, 'building' => null];
+        }
+
+        ItemAccess::query()->create([
+            'item_id' => $item->id,
+            'user_id' => $request->user()->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'browser' => $this->browserName((string) $request->userAgent()),
+            ...$place,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'room' => filled($validated['room'] ?? null) ? $validated['room'] : null,
+            'container' => filled($validated['container'] ?? null) ? $validated['container'] : null,
+        ]);
+
+        return redirect()->route('items.show', ['uuid' => $uuid])
+            ->with('status', 'Scan location recorded.')
+            ->with('statusType', 'notice');
+    }
+
     private function storePhotoForItem(UploadedFile $photo, string $uuid): string
     {
         return $this->imageCompression->compressAndStore($photo, $uuid);
@@ -348,11 +406,23 @@ class ItemController extends Controller
 
     private function timelineFor(Item $item): Collection
     {
+        $userIds = $item->accesses->pluck('user_id')
+            ->merge($item->events->pluck('user_id'))
+            ->filter()
+            ->unique()
+            ->values();
+        $scanCounts = ItemAccess::query()->whereIn('user_id', $userIds)
+            ->selectRaw('user_id, count(*) as aggregate')
+            ->groupBy('user_id')
+            ->pluck('aggregate', 'user_id');
+        $actorLabel = fn ($user): string => $user
+            ? $user->displayLabel().' · '.($scanCounts[$user->id] ?? 0).' scans'
+            : 'Anonymous';
         $created = collect([[
             'type' => 'created',
             'occurred_at' => $item->created_at,
             'title' => 'Object created',
-            'actor' => $item->creator?->displayLabel() ?? 'Anonymous',
+            'actor' => $actorLabel($item->creator),
             'flag' => null,
             'comment' => $item->description,
             'tags' => null,
@@ -365,7 +435,7 @@ class ItemController extends Controller
             'type' => 'accessed',
             'occurred_at' => $access->created_at,
             'title' => 'Object accessed',
-            'actor' => $access->actorLabel(),
+            'actor' => $actorLabel($access->user),
             'flag' => $access->countryFlag(),
             'comment' => $access->accessDescription(),
             'tags' => null,
@@ -375,10 +445,11 @@ class ItemController extends Controller
         ]);
 
         $events = $item->events->map(fn (ItemEvent $event): array => [
+            'id' => $event->id,
             'type' => 'photo',
             'occurred_at' => $event->created_at,
             'title' => 'Photo uploaded',
-            'actor' => $event->author?->displayLabel() ?? 'Anonymous',
+            'actor' => $actorLabel($event->author),
             'flag' => null,
             'comment' => $event->comment,
             'tags' => $event->tags,

@@ -19,7 +19,21 @@ class ItemAccess extends Model
         'city',
         'country',
         'country_code',
+        'latitude',
+        'longitude',
+        'address',
+        'building',
+        'room',
+        'container',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'float',
+            'longitude' => 'float',
+        ];
+    }
 
     public function item(): BelongsTo
     {
@@ -47,9 +61,14 @@ class ItemAccess extends Model
             $this->country ?: $this->country_code ?: 'unknown country',
         ])));
 
+        $locationDetail = collect([$this->building, $this->room, $this->container])
+            ->filter()
+            ->implode(' · ');
+
         return sprintf(
-            'from %s using %s',
+            'from %s%s using %s',
             $location,
+            $locationDetail !== '' ? ' — '.$locationDetail : '',
             $this->browser ?: 'unknown browser',
         );
     }

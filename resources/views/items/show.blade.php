@@ -48,6 +48,31 @@
 
             @include('items.partials.wikidata', ['wikidata' => $wikidata, 'semanticUrl' => $semanticUrl])
 
+            <div class="app-divider mt-4 border p-4">
+                <h2 class="app-accent text-base font-semibold">Record scan location</h2>
+                <p class="app-muted mt-1 text-xs">Uses this device’s location, then resolves the surrounding place. Room and container stay local to this record.</p>
+                <form method="POST" action="{{ route('items.location.store', ['uuid' => $item->uuid]) }}" class="mt-3 grid gap-3" data-location-form>
+                    @csrf
+                    <input type="hidden" name="latitude" data-location-latitude>
+                    <input type="hidden" name="longitude" data-location-longitude>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <label class="app-form__field">
+                            <span class="app-form__label">Room <span class="app-form__optional">Optional</span></span>
+                            <input name="room" maxlength="120" class="app-field" placeholder="Receiving room">
+                        </label>
+                        <label class="app-form__field">
+                            <span class="app-form__label">Container <span class="app-form__optional">Optional</span></span>
+                            <input name="container" maxlength="120" class="app-field" placeholder="Shelf A / tote 4">
+                        </label>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="button" class="app-btn" data-location-capture>Use device location</button>
+                        <button type="submit" class="app-btn app-btn-primary" disabled data-location-submit>Save location</button>
+                        <span class="app-muted text-xs" data-location-status></span>
+                    </div>
+                </form>
+            </div>
+
             @if ($isAuthenticated)
                 <div class="app-divider mt-4 border p-4">
                     <h2 class="app-accent text-base font-semibold">Add timeline entry</h2>
@@ -194,6 +219,12 @@
                                                 <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
                                                     <img data-src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
                                                 </a>
+                                                @if ($canPost)
+                                                    <form method="POST" action="{{ route('items.featured-photo.update', ['uuid' => $item->uuid, 'event' => $event['id']]) }}" class="mt-2">
+                                                        @csrf
+                                                        <button type="submit" class="app-btn">{{ $item->featured_event_id === $event['id'] ? 'Featured photo' : 'Set as featured photo' }}</button>
+                                                    </form>
+                                                @endif
                                             </details>
                                         @endif
                                         @if (! empty($event['tags']))
@@ -273,6 +304,27 @@
                     image.removeAttribute('data-src');
                 }
             }, { once: true });
+        });
+
+        document.querySelectorAll('[data-location-form]').forEach((form) => {
+            const capture = form.querySelector('[data-location-capture]');
+            const submit = form.querySelector('[data-location-submit]');
+            const status = form.querySelector('[data-location-status]');
+            capture?.addEventListener('click', () => {
+                if (! navigator.geolocation) {
+                    status.textContent = 'Location is unavailable in this browser.';
+                    return;
+                }
+                status.textContent = 'Getting location…';
+                navigator.geolocation.getCurrentPosition((position) => {
+                    form.querySelector('[data-location-latitude]').value = position.coords.latitude;
+                    form.querySelector('[data-location-longitude]').value = position.coords.longitude;
+                    submit.disabled = false;
+                    status.textContent = 'Location ready to save.';
+                }, () => {
+                    status.textContent = 'Location permission was not granted.';
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+            });
         });
     </script>
 </x-layouts.app>

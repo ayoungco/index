@@ -4,6 +4,7 @@ use App\Models\Item;
 use App\Models\ItemAccess;
 use App\Models\User;
 use App\Services\ImageCompressionService;
+use App\Services\ReverseGeocoder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -62,11 +63,11 @@ test('authenticated item access is recorded for the signed-in user', function ()
     $response->assertSeeInOrder([
         '<td class="compose-log__rail-cell"',
         '<time class="compose-log__time"',
-        '<span class="compose-log__source">'.$item->creator->displayLabel().'</span>',
+        '<span class="compose-log__source">'.$item->creator->displayLabel().' · 1 scans</span>',
         '<span class="compose-log__message">Object accessed | from New York, United States using Safari</span>',
     ], false);
     $response->assertSeeInOrder([
-        '<span class="compose-log__source">'.$item->creator->displayLabel().'</span>',
+        '<span class="compose-log__source">'.$item->creator->displayLabel().' · 1 scans</span>',
         'Object accessed | from New York, United States using Safari',
     ], false);
 
@@ -336,6 +337,60 @@ test('the image processor writes a generated jpeg to the private upload disk', f
     expect(Storage::disk('uploads')->size($path))->toBeGreaterThan(0);
 });
 
+test('a user can select a timeline image as the featured photo', function () {
+    $item = Item::factory()->create();
+    $event = $item->events()->create([
+        'user_id' => $item->user_id,
+        'image_path' => 'items/'.$item->uuid.'/featured.jpg',
+        'is_qr_verified' => false,
+    ]);
+
+    $this->actingAs($item->creator, 'auth0-session')
+        ->post(route('items.featured-photo.update', ['uuid' => $item->uuid, 'event' => $event->id]))
+        ->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+
+    expect($item->fresh()->featured_event_id)->toBe($event->id);
+});
+
+test('a scan location is reverse geocoded and retained with room context', function () {
+    $item = Item::factory()->create();
+    $this->mock(ReverseGeocoder::class, function ($mock) {
+        $mock->shouldReceive('lookup')->once()->andReturn([
+            'address' => '100 Main Street, Beacon, New York',
+            'city' => 'Beacon',
+            'country' => 'United States',
+            'country_code' => 'US',
+            'building' => 'Receiving Building',
+        ]);
+    });
+
+    $this->actingAs($item->creator, 'auth0-session')
+        ->post(route('items.location.store', ['uuid' => $item->uuid]), [
+            'latitude' => 41.5044,
+            'longitude' => -73.9696,
+            'room' => 'Dock 2',
+            'container' => 'Shelf A',
+        ])
+        ->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+
+    $this->assertDatabaseHas('item_accesses', [
+        'item_id' => $item->id,
+        'city' => 'Beacon',
+        'building' => 'Receiving Building',
+        'room' => 'Dock 2',
+        'container' => 'Shelf A',
+    ]);
+});
+
+test('snake case identifiers resolve to the matching item slug', function () {
+    $item = Item::factory()->create(['slug' => 'oxygen-tank-shelf-3']);
+
+    $this->actingAs($item->creator, 'auth0-session')
+        ->get('/oxygen_tank_shelf_3')
+        ->assertOk()
+        ->assertSee($item->name);
+});
+
 test('a photo is rejected when it cannot be decoded and re-encoded safely', function () {
     Storage::fake('uploads');
 
@@ -427,7 +482,7 @@ test('timeline uses email when an actor has no display name', function () {
     $response = $this->get('/'.$item->uuid);
 
     $response->assertOk();
-    $response->assertSee('<span class="compose-log__source">operator@example.com</span>', false);
+    $response->assertSee('<span class="compose-log__source">operator@example.com · 1 scans</span>', false);
     $response->assertSee('app-header__search', false);
     $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'vertical']), false);
     $response->assertSee(route('items.print', ['uuid' => $item->uuid, 'layout' => 'horizontal']), false);

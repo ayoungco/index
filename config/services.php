@@ -43,4 +43,9 @@ return [
         'ttl'    => (int) env('WIKIDATA_CACHE_TTL', 43200), // 12h
     ],
 
+    'geocoding' => [
+        'endpoint' => env('GEOCODING_ENDPOINT', 'https://nominatim.openstreetmap.org/reverse'),
+        'user_agent' => env('GEOCODING_USER_AGENT', 'IndexApp/0.1 (contact@example.com)'),
+    ],
+
 ];

@@ -47,6 +47,7 @@ class DashboardController extends Controller
     private function searchItems(string $search, int $limit = 100): Collection
     {
         return Item::query()
+            ->with(['featuredEvent', 'latestPhoto'])
             ->when($search !== '', function (Builder $query) use ($search) {
                 $query->where(function (Builder $likeQuery) use ($search) {
                     $operator = $likeQuery->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
@@ -59,6 +60,6 @@ class DashboardController extends Controller
             })
             ->latest('created_at')
             ->limit($limit)
-            ->get(['id', 'uuid', 'name', 'slug', 'wikidata_qid', 'type_namespace', 'description', 'created_at']);
+            ->get(['id', 'uuid', 'name', 'slug', 'wikidata_qid', 'type_namespace', 'description', 'featured_event_id', 'created_at']);
     }
 }
