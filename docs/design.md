@@ -108,6 +108,7 @@ user_id         — creator/owner
 
 /wd/item/{qid}               → WikidataThingController::show  — concept reference page
 /wd/type/{type}              → WikidataTypeController::index  — concept type browser
+/wd/search?q=...              → WikidataThingController::search — claim-flow concept picker
 
 /dashboard                   → search + item list
 ```
