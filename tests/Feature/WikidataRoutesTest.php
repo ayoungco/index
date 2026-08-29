@@ -53,6 +53,19 @@ beforeEach(function () {
             ];
         });
 
+    $fake->shouldReceive('search')
+        ->andReturn([
+            [
+                'id' => 'Q629',
+                'label' => 'oxygen',
+                'description' => 'chemical element with symbol O and atomic number 8',
+            ],
+            [
+                'id' => 'not-a-qid',
+                'label' => 'Invalid result',
+            ],
+        ]);
+
     $fake->shouldReceive('sparql')
         ->andReturn([
             [
@@ -70,6 +83,23 @@ it('loads a wikidata entity route', function () {
     $resp->assertOk();
     $resp->assertSee('Douglas Adams');
     $resp->assertSee('Q42');
+});
+
+it('searches wikidata concepts for the claim flow', function () {
+    $response = $this->getJson('/wd/search?q=oxygen');
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(1, 'results')
+        ->assertJsonPath('results.0.id', 'Q629')
+        ->assertJsonPath('results.0.label', 'oxygen')
+        ->assertJsonPath('results.0.description', 'chemical element with symbol O and atomic number 8');
+});
+
+it('does not search wikidata for a one-character query', function () {
+    $this->getJson('/wd/search?q=o')
+        ->assertOk()
+        ->assertJsonCount(0, 'results');
 });
 
 it('loads a wikidata type route', function () {
