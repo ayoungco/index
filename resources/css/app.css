@@ -234,6 +234,39 @@
         padding-top: 1rem;
     }
 
+    .wikidata-picker__results {
+        display: grid;
+        gap: 0.35rem;
+        max-height: 18rem;
+        overflow-y: auto;
+        border: 1px solid var(--app-line);
+        background: var(--app-background);
+        padding: 0.35rem;
+    }
+
+    .wikidata-picker__results[hidden] {
+        display: none;
+    }
+
+    .wikidata-picker__result {
+        display: grid;
+        justify-items: start;
+        gap: 0.15rem;
+        width: 100%;
+        text-align: left;
+    }
+
+    .wikidata-picker__result-label {
+        font-weight: 800;
+    }
+
+    .wikidata-picker__result-meta {
+        color: var(--app-medium);
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.4;
+    }
+
     .app-quick-create {
         display: grid;
         gap: 0.65rem;
