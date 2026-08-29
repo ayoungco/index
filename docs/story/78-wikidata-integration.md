@@ -18,7 +18,7 @@ The ordered backlog belongs in [the roadmap](../roadmap.md).
 | `wikidata_qid` on `Item` model | ✅ built |
 | `wikidata_entities` local cache table | ❌ not yet |
 | Wikidata enrichment on item show page | ✅ built |
-| QID search in item initialization flow | ❌ not yet |
+| QID search in item initialization flow | ✅ built |
 
 ---
 
@@ -26,7 +26,7 @@ The ordered backlog belongs in [the roadmap](../roadmap.md).
 
 1. Add `wikidata_entities` cache table (`qid`, `label`, `description`, `claims_json`, `fetched_at`)
 2. Add a resolver service: search → rank → fetch → cache (wraps existing `Wikidata` service)
-3. Add Wikidata concept search to the item initialization/claim flow — search-as-you-type, returns QID + label + description, user picks one to categorize the item
+3. Add a local concept cache and keep the claim-flow search responsive as usage grows
 
 ---
 
@@ -81,3 +81,8 @@ type from QID           → P31 (instance of) + P279 (subclass of) chain
 concept search by text  → wbsearchentities
 list by type (SPARQL)   → ?item wdt:P31 wd:{QID}
 ```
+
+The claim flow exposes the search through the authenticated `GET /wd/search`
+endpoint. It returns a small result set containing the QID, label, and
+description; the selected QID is stored on the local item while Wikidata remains
+an optional enrichment layer.
