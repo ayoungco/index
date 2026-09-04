@@ -37,7 +37,6 @@ class ItemController extends Controller
         $user = $request->user();
         $item = Item::query()
             ->where('uuid', $uuid)
-            ->with(['creator', 'featuredEvent', 'latestPhoto', 'events.author', 'accesses.user'])
             ->first();
 
         if (! $item) {
@@ -54,9 +53,15 @@ class ItemController extends Controller
             ]);
         }
 
+        if (! $item->isPublic() && ! $user) {
+            return view('items.private', [
+                'loginUrl' => route('login', ['returnTo' => $returnToUrl], true),
+            ]);
+        }
+
         if (! $user) {
             $this->recordAccess($request, $item);
-            $item->load(['featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
+            $item->load(['creator', 'featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
 
             $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
             $wikidata = $this->wikidataSummaryFor($item);
@@ -66,14 +71,15 @@ class ItemController extends Controller
                 'itemUrl' => $itemUrl,
                 'semanticUrl' => $item->semanticUrl(),
                 'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
-                'timeline' => $this->timelineFor($item),
+                'timeline' => $this->timelineFor($item, false),
                 'wikidata' => $wikidata,
                 'loginUrl' => route('login', ['returnTo' => $returnToUrl], true),
+                'isPublic' => true,
             ]);
         }
 
         $this->recordAccess($request, $item);
-        $item->load(['featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
+        $item->load(['creator', 'featuredEvent', 'latestPhoto', 'events.author', 'accesses.user']);
 
         $itemUrl = route('items.show', ['uuid' => $item->uuid], true);
         $wikidata = $this->wikidataSummaryFor($item);
@@ -85,6 +91,7 @@ class ItemController extends Controller
             'qrSvg' => $this->qrRenderer->renderSvg($itemUrl, 280),
             'isAuthenticated' => true,
             'canPost' => (bool) $user->email_verified_at,
+            'canManageVisibility' => (bool) $user->email_verified_at,
             'timeline' => $this->timelineFor($item),
             'wikidata' => $wikidata,
         ]);
@@ -121,6 +128,7 @@ class ItemController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
+            'operational_role' => [$this->operationalRoleRule()],
             'photo' => $this->photoRules(),
             'comment' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -136,6 +144,7 @@ class ItemController extends Controller
             'name' => $name,
             'slug' => $this->uniqueSlug($name),
             'wikidata_qid' => $validated['wikidata_qid'] ?? null,
+            'operational_role' => $validated['operational_role'] ?? null,
             'description' => $validated['description'] ?? null,
             'user_id' => $request->user()->id,
         ]);
@@ -164,6 +173,7 @@ class ItemController extends Controller
                 'photo' => $this->photoRules(),
                 'name' => ['nullable', 'string', 'max:255'],
                 'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
+                'operational_role' => [$this->operationalRoleRule()],
             ]);
 
             $uuid = (string) Str::uuid();
@@ -178,6 +188,7 @@ class ItemController extends Controller
                 'name' => $name,
                 'slug' => $this->uniqueSlug($name),
                 'wikidata_qid' => $validated['wikidata_qid'] ?? null,
+                'operational_role' => $validated['operational_role'] ?? null,
                 'description' => null,
                 'user_id' => $request->user()->id,
             ]);
@@ -231,6 +242,21 @@ class ItemController extends Controller
         return redirect()
             ->route('items.show', ['uuid' => $uuid])
             ->with('status', 'Object description updated.')
+            ->with('statusType', 'notice');
+    }
+
+    public function updateVisibility(Request $request, string $uuid): RedirectResponse
+    {
+        $item = Item::query()->where('uuid', $uuid)->firstOrFail();
+
+        $validated = $request->validate([
+            'is_public' => ['required', 'boolean'],
+        ]);
+
+        $item->forceFill(['is_public' => (bool) $validated['is_public']])->save();
+
+        return redirect()->route('items.show', ['uuid' => $uuid])
+            ->with('status', $item->isPublic() ? 'Object is now public.' : 'Object is now private.')
             ->with('statusType', 'notice');
     }
 
@@ -388,6 +414,11 @@ class ItemController extends Controller
         ];
     }
 
+    private function operationalRoleRule(): string
+    {
+        return 'nullable|in:product,holding_unit,transportation_unit,location,asset,other';
+    }
+
     private function recordAccess(Request $request, Item $item): void
     {
         $countryCode = $this->countryCode($request);
@@ -404,7 +435,7 @@ class ItemController extends Controller
         ]);
     }
 
-    private function timelineFor(Item $item): Collection
+    private function timelineFor(Item $item, bool $includeAccesses = true): Collection
     {
         $userIds = $item->accesses->pluck('user_id')
             ->merge($item->events->pluck('user_id'))
@@ -431,7 +462,7 @@ class ItemController extends Controller
             'is_qr_verified' => null,
         ]]);
 
-        $accesses = $item->accesses->map(fn (ItemAccess $access): array => [
+        $accesses = $includeAccesses ? $item->accesses->map(fn (ItemAccess $access): array => [
             'type' => 'accessed',
             'occurred_at' => $access->created_at,
             'title' => 'Object accessed',
@@ -442,7 +473,7 @@ class ItemController extends Controller
             'image_path' => null,
             'image_url' => null,
             'is_qr_verified' => null,
-        ]);
+        ]) : collect();
 
         $events = $item->events->map(fn (ItemEvent $event): array => [
             'id' => $event->id,

@@ -17,6 +17,10 @@
                 </a>
 
                 @if ($user)
+                    <nav class="app-header__nav" aria-label="Main navigation">
+                        <a href="{{ route('dashboard') }}">Objects</a>
+                        <a href="{{ route('labels.create') }}" @if (request()->routeIs('labels.*')) aria-current="page" @endif>Print labels</a>
+                    </nav>
                     <form
                         method="GET"
                         action="{{ route('dashboard') }}"

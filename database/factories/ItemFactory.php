@@ -14,6 +14,7 @@ class ItemFactory extends Factory
             'uuid' => (string) Str::uuid(),
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
+            'is_public' => true,
             'user_id' => User::factory(),
         ];
     }

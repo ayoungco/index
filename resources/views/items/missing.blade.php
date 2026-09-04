@@ -77,6 +77,40 @@
                             >{{ old('comment') }}</textarea>
                         </label>
 
+                        <details>
+                            <summary class="app-accent cursor-pointer text-xs font-semibold">Optional classification</summary>
+                            <div class="mt-3 grid gap-4">
+                                <label class="app-form__field">
+                                    <span class="app-form__label">Operational role <span class="app-form__optional">Optional</span></span>
+                                    <select name="operational_role" class="app-field">
+                                        <option value="">Choose later</option>
+                                        @foreach ([
+                                            'product' => 'Product',
+                                            'holding_unit' => 'Holding unit',
+                                            'transportation_unit' => 'Transportation unit',
+                                            'location' => 'Location / bay',
+                                            'asset' => 'Asset',
+                                            'other' => 'Other',
+                                        ] as $value => $label)
+                                            <option value="{{ $value }}" @selected(old('operational_role') === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+
+                                <label class="app-form__field">
+                                    <span class="app-form__label">Wikidata QID <span class="app-form__optional">Optional</span></span>
+                                    <input
+                                        type="text"
+                                        name="wikidata_qid"
+                                        value="{{ old('wikidata_qid') }}"
+                                        maxlength="32"
+                                        class="app-field"
+                                        placeholder="Q..."
+                                    >
+                                </label>
+                            </div>
+                        </details>
+
                         <div class="app-form__actions">
                             <button type="submit" class="app-btn app-btn-primary w-full sm:w-auto">
                                 Register object
@@ -92,6 +126,12 @@
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     @error('comment')
+                        <p class="app-notice text-xs">{{ $message }}</p>
+                    @enderror
+                    @error('operational_role')
+                        <p class="app-notice text-xs">{{ $message }}</p>
+                    @enderror
+                    @error('wikidata_qid')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     <noscript>

@@ -18,8 +18,8 @@
                 @endif
             </div>
 
-            <p class="app-muted mt-3">Public view. Log in to post timeline media.</p>
-            <a href="{{ $loginUrl }}" class="app-btn app-btn mt-4">Login With Auth0</a>
+            <p class="app-muted mt-3">Public view · read-only. Log in to add notes, photos, and scan locations.</p>
+            <a href="{{ $loginUrl }}" class="app-btn app-btn mt-4">Log in to add updates</a>
 
             @include('items.partials.wikidata', ['wikidata' => $wikidata, 'semanticUrl' => $semanticUrl])
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ItemEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -11,6 +12,22 @@ class ProtectedMediaController extends Controller
     public function show(Request $request, string $path): BinaryFileResponse
     {
         abort_unless($this->isAllowedPath($path), 404);
+
+        $isPublic = str_starts_with($path, 'branding/');
+
+        if (str_starts_with($path, 'items/')) {
+            $event = ItemEvent::query()
+                ->with('item')
+                ->where('image_path', $path)
+                ->first();
+
+            abort_unless($event?->item && ($event->item->isPublic() || $request->user()), 404);
+            $isPublic = (bool) $event->item->isPublic();
+        }
+
+        if (! $isPublic) {
+            abort_unless($request->user(), 401);
+        }
 
         $disk = Storage::disk('uploads');
 
@@ -25,7 +42,7 @@ class ProtectedMediaController extends Controller
         $response = response()->file($disk->path($path), [
             'Content-Type' => $disk->mimeType($path) ?: 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, max-age=3600',
+            'Cache-Control' => $isPublic ? 'public, max-age=3600' : 'private, max-age=3600',
         ]);
 
         $response->setContentDisposition('inline', basename($path));

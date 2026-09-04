@@ -4,9 +4,10 @@
 
 # index
 
-index is a private, QR-first registry for real-world objects. A printed QR label
+index is a QR-first registry for real-world objects. A printed QR label
 contains a permanent UUID URL. Scanning that label opens the local record for the
-specific object—not a generic product page—where authenticated operators can add
+specific object—not a generic product page—where anyone can view public records
+and authenticated operators can add
 photos, notes, scan locations, and custody context.
 
 Wikidata supplies the conceptual layer. An operator can link an item to a QID,
@@ -22,9 +23,9 @@ anchor; the semantic URL is a convenient alias.
 4. Record photos, selected featured media, and optional device location.
 5. Return to the same UUID whenever the physical object is handled.
 
-Object records and media are private. The dashboard is the authenticated homepage
-for finding records and their featured photos; every timeline actor displays their
-total scan count.
+Objects can be public or private. Public records remain visible from their QR and
+semantic URLs; private records and operator features require Auth0. The dashboard
+is the authenticated homepage for finding records and their featured photos.
 
 ## Installation
 
@@ -60,7 +61,7 @@ when image processing and storage succeeded.
 
 All uploads are decoded and re-encoded as application-generated JPEG files before
 they are written outside the public web root. They are available only from the
-authenticated `/media/...` application route; original uploaded bytes are never
+visibility-aware `/media/...` application route; original uploaded bytes are never
 served. Legacy public-storage files are also read only through that route. Keep
 all direct `/storage` requests blocked at the web-server layer. Apache deployments
 receive this protection from `storage/app/public/.htaccess`; for Nginx, add:

@@ -18,27 +18,46 @@
                     <p class="app-muted max-w-3xl">{{ $item->description }}</p>
                 @endif
 
-                @if ($isAuthenticated && $canPost)
-                    <form method="POST" action="{{ route('items.update', ['uuid' => $item->uuid]) }}" class="app-compact-form">
-                        @csrf
-                        @method('PATCH')
+                @if ($isAuthenticated)
+                    <details class="mt-3">
+                        <summary class="app-accent cursor-pointer text-xs font-semibold">Manage record</summary>
+                        <div class="mt-3 grid gap-4">
+                            @if ($canManageVisibility)
+                                <div class="flex flex-wrap items-center gap-3 text-xs">
+                                    <span class="app-muted">Visibility: <strong>{{ $item->is_public ? 'Public' : 'Private' }}</strong></span>
+                                    <form method="POST" action="{{ route('items.visibility.update', ['uuid' => $item->uuid]) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="is_public" value="{{ $item->is_public ? 0 : 1 }}">
+                                        <button type="submit" class="app-btn">Make {{ $item->is_public ? 'private' : 'public' }}</button>
+                                    </form>
+                                </div>
+                            @endif
 
-                        <label for="item-description" class="app-form__label">Description</label>
-                        <div class="app-compact-form__row">
-                            <textarea
-                                id="item-description"
-                                name="description"
-                                rows="2"
-                                maxlength="5000"
-                                class="app-field app-compact-form__field"
-                                placeholder="Add context, condition, location, or usage notes"
-                            >{{ old('description', $item->description) }}</textarea>
-                            <button type="submit" class="app-btn app-compact-form__submit">Save</button>
+                            @if ($canPost)
+                                <form method="POST" action="{{ route('items.update', ['uuid' => $item->uuid]) }}" class="app-compact-form">
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <label for="item-description" class="app-form__label">Description</label>
+                                    <div class="app-compact-form__row">
+                                        <textarea
+                                            id="item-description"
+                                            name="description"
+                                            rows="2"
+                                            maxlength="5000"
+                                            class="app-field app-compact-form__field"
+                                            placeholder="Condition, location, or usage notes"
+                                        >{{ old('description', $item->description) }}</textarea>
+                                        <button type="submit" class="app-btn app-compact-form__submit">Save</button>
+                                    </div>
+                                    @error('description')
+                                        <p class="app-notice text-xs">{{ $message }}</p>
+                                    @enderror
+                                </form>
+                            @endif
                         </div>
-                        @error('description')
-                            <p class="app-notice text-xs">{{ $message }}</p>
-                        @enderror
-                    </form>
+                    </details>
                 @endif
             </div>
 
@@ -48,34 +67,36 @@
 
             @include('items.partials.wikidata', ['wikidata' => $wikidata, 'semanticUrl' => $semanticUrl])
 
-            <div class="app-divider mt-4 border p-4">
-                <h2 class="app-accent text-base font-semibold">Record scan location</h2>
-                <p class="app-muted mt-1 text-xs">Uses this device’s location, then resolves the surrounding place. Room and container stay local to this record.</p>
-                <form method="POST" action="{{ route('items.location.store', ['uuid' => $item->uuid]) }}" class="mt-3 grid gap-3" data-location-form>
-                    @csrf
-                    <input type="hidden" name="latitude" data-location-latitude>
-                    <input type="hidden" name="longitude" data-location-longitude>
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        <label class="app-form__field">
-                            <span class="app-form__label">Room <span class="app-form__optional">Optional</span></span>
-                            <input name="room" maxlength="120" class="app-field" placeholder="Receiving room">
-                        </label>
-                        <label class="app-form__field">
-                            <span class="app-form__label">Container <span class="app-form__optional">Optional</span></span>
-                            <input name="container" maxlength="120" class="app-field" placeholder="Shelf A / tote 4">
-                        </label>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <button type="button" class="app-btn" data-location-capture>Use device location</button>
-                        <button type="submit" class="app-btn app-btn-primary" disabled data-location-submit>Save location</button>
-                        <span class="app-muted text-xs" data-location-status></span>
-                    </div>
-                </form>
-            </div>
+            @if ($isAuthenticated)
+                <details class="app-divider mt-4 border p-4">
+                    <summary class="app-accent cursor-pointer text-base font-semibold">Record scan location</summary>
+                    <p class="app-muted mt-2 text-xs">Optional. Uses this device’s location; room and container stay local to this scan.</p>
+                    <form method="POST" action="{{ route('items.location.store', ['uuid' => $item->uuid]) }}" class="mt-3 grid gap-3" data-location-form>
+                        @csrf
+                        <input type="hidden" name="latitude" data-location-latitude>
+                        <input type="hidden" name="longitude" data-location-longitude>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="app-form__field">
+                                <span class="app-form__label">Room <span class="app-form__optional">Optional</span></span>
+                                <input name="room" maxlength="120" class="app-field" placeholder="Receiving room">
+                            </label>
+                            <label class="app-form__field">
+                                <span class="app-form__label">Container <span class="app-form__optional">Optional</span></span>
+                                <input name="container" maxlength="120" class="app-field" placeholder="Shelf A / tote 4">
+                            </label>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button type="button" class="app-btn" data-location-capture>Use device location</button>
+                            <button type="submit" class="app-btn app-btn-primary" disabled data-location-submit>Save location</button>
+                            <span class="app-muted text-xs" data-location-status></span>
+                        </div>
+                    </form>
+                </details>
+            @endif
 
             @if ($isAuthenticated)
                 <div class="app-divider mt-4 border p-4">
-                    <h2 class="app-accent text-base font-semibold">Add timeline entry</h2>
+                    <h2 class="app-accent text-base font-semibold">Add photo</h2>
 
                     @if ($canPost)
                         @php
@@ -98,8 +119,9 @@
                                 class="sr-only"
                             >
 
-                            <div class="app-event-form__fields">
-                                <label class="app-form__field">
+                            <details class="app-event-form__fields">
+                                <summary class="app-accent cursor-pointer text-xs font-semibold">Add a note</summary>
+                                <label class="app-form__field mt-2">
                                     <span class="app-form__label">Note <span class="app-form__optional">Optional</span></span>
                                     <textarea
                                         name="comment"
@@ -109,19 +131,7 @@
                                         placeholder="Condition, location, handoff, or other update"
                                     >{{ old('comment') }}</textarea>
                                 </label>
-
-                                <label class="app-form__field">
-                                    <span class="app-form__label">Tags <span class="app-form__optional">Optional</span></span>
-                                    <input
-                                        type="text"
-                                        name="tags"
-                                        value="{{ old('tags') }}"
-                                        maxlength="500"
-                                        class="app-field"
-                                        placeholder="handoff, bay-4, fragile"
-                                    >
-                                </label>
-                            </div>
+                            </details>
 
                             <div class="app-event-form__upload">
                                 <button
@@ -160,10 +170,6 @@
                             @error('comment')
                                 <p class="app-notice text-xs">{{ $message }}</p>
                             @enderror
-                            @error('tags')
-                                <p class="app-notice text-xs">{{ $message }}</p>
-                            @enderror
-
                             <div class="hidden" data-js-submit-fallback="{{ $item->id }}">
                                 <button type="submit" class="app-btn">
                                     Add Photo
@@ -219,12 +225,6 @@
                                                 <a href="{{ $event['image_url'] }}" class="compose-log__thumb" aria-label="Open timeline image for {{ $event['occurred_at']?->format('Y-m-d H:i:s') }}">
                                                     <img data-src="{{ $event['image_url'] }}" alt="Timeline image for {{ $item->name }}" loading="lazy" decoding="async">
                                                 </a>
-                                                @if ($canPost)
-                                                    <form method="POST" action="{{ route('items.featured-photo.update', ['uuid' => $item->uuid, 'event' => $event['id']]) }}" class="mt-2">
-                                                        @csrf
-                                                        <button type="submit" class="app-btn">{{ $item->featured_event_id === $event['id'] ? 'Featured photo' : 'Set as featured photo' }}</button>
-                                                    </form>
-                                                @endif
                                             </details>
                                         @endif
                                         @if (! empty($event['tags']))

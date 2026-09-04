@@ -9,9 +9,10 @@ for constraints on future work.
 
 ## What index is
 
-index is a private QR-anchored physical object registry. A QR code printed on any
+index is a QR-anchored physical object registry. A QR code printed on any
 real-world object is the primary entry point to that object's metadata. The QR
-encodes a UUID URL. Scanning it lands on an Auth0-protected page that combines:
+encodes a UUID URL. Scanning it lands on a public or Auth0-authenticated page
+that combines:
 
 - **Local operational data** — who registered it, where it's been, who's accessed it, photos
 - **Wikidata-derived conceptual data** — what kind of thing it *is*, pulled from the public knowledge graph
@@ -88,10 +89,12 @@ description     — freeform notes
 slug            — optional human-readable URL segment
 wikidata_qid    — optional Wikidata concept link (e.g., Q629)
 type_namespace  — derived from Wikidata P31 chain (e.g., "element")
+operational_role — local warehouse role (product, holding_unit, transportation_unit, location)
 user_id         — creator/owner
 ```
 
-`Thing` (the older model) is a predecessor to `Item` and should eventually be merged or retired. It currently handles slug-based routing and session scan tracking. These capabilities belong on `Item`.
+The legacy `Thing` model and its empty property/relation graph have been retired.
+Slug-based routing and scan tracking belong on `Item`.
 
 ---
 
@@ -124,6 +127,15 @@ When an item page loads with a linked `wikidata_qid`:
 4. Render item page with both local record and Wikidata facts merged
 
 The Wikidata layer never replaces the local record — it enriches it. Local fields (name, owner, scan history, photos) are always primary.
+
+Warehouse roles remain local. A Wikidata QID can optionally describe what an
+Item is, while `operational_role` describes how the installation uses it. For
+example, a crate can be a `holding_unit` with a Wikidata concept for its physical
+type; a bay can be a `location` without needing a Wikidata match.
+
+Containment is represented by `item_containments`, a typed, time-aware edge
+between two Items. The optional evidence event links a container relationship to
+the photo or scan that established it.
 
 ---
 
@@ -164,4 +176,4 @@ Trigger for migration to dump backend: sustained public endpoint rate limit hits
 
 1. Add Wikidata concept search to the item initialization/claim flow (search-as-you-type → select QID).
 2. Add `wikidata_entities` local cache table.
-3. Migrate or retire `Thing` model once `Item` covers slug + scan session tracking.
+3. Keep `Item` as the sole local object model.

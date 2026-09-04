@@ -2,9 +2,9 @@
 
 ## Purpose
 
-index is a private registry for physical objects. A QR label is the durable
-entry point: it identifies one real-world instance and leads an authenticated
-operator to its local record.
+index is a registry for physical objects. A QR label is the durable entry point:
+it identifies one real-world instance and leads to a public or authenticated
+operator view of its local record.
 
 The product combines two layers without confusing them:
 
@@ -50,7 +50,8 @@ conveniences, not replacements for the QR anchor:
 
 ## Product boundaries
 
-- index is not a public object directory: records and media require Auth0.
+- public records can be read without an account; private records, media, and
+  operator actions require Auth0.
 - index is not a generic CMS: object pages are operational records.
 - index does not replicate Wikidata: it links to and caches focused concept data.
 - index does not yet promise configurable schemas, subscriptions, federation, or

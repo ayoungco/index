@@ -580,6 +580,19 @@
         background: var(--app-surface);
     }
 
+    .app-header__nav {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        font-size: .75rem;
+        white-space: nowrap;
+    }
+
+    .app-header__nav a[aria-current="page"] {
+        text-decoration: underline;
+        text-underline-offset: .2em;
+    }
+
     .app-header__search-input {
         width: 100%;
         min-width: 0;

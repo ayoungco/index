@@ -2,10 +2,12 @@
 
 ## Privacy and media
 
-All item pages and media require Auth0 authentication. Uploads are decoded and
+Private item pages and media require Auth0 authentication. Public item pages and
+their media are read-only. Uploads are decoded and
 re-encoded as JPEGs, then stored outside the public web root at
-`storage/app/private/uploads`. Media is delivered by the authenticated
-`/media/...` route. Block direct `/storage` requests at the web server.
+`storage/app/private/uploads`. Media is delivered by the `/media/...` route, which
+checks the owning object's visibility. Block direct `/storage` requests at the
+web server.
 
 New deployments must run migrations and preserve write access to `storage` and
 `bootstrap/cache`:

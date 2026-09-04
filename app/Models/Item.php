@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
@@ -19,9 +20,20 @@ class Item extends Model
         'slug',
         'wikidata_qid',
         'type_namespace',
+        'operational_role',
         'description',
+        'is_public',
         'user_id',
     ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
+    ];
+
+    public function isPublic(): bool
+    {
+        return (bool) $this->is_public;
+    }
 
     public function semanticUrl(): ?string
     {
@@ -47,6 +59,19 @@ class Item extends Model
             ->toString();
     }
 
+    public function operationalRoleLabel(): ?string
+    {
+        return match ($this->operational_role) {
+            'product' => 'Product',
+            'holding_unit' => 'Holding unit',
+            'transportation_unit' => 'Transportation unit',
+            'location' => 'Location / bay',
+            'asset' => 'Asset',
+            'other' => 'Other',
+            default => null,
+        };
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -60,6 +85,48 @@ class Item extends Model
     public function accesses(): HasMany
     {
         return $this->hasMany(ItemAccess::class)->latest();
+    }
+
+    public function containedItems(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            self::class,
+            'item_containments',
+            'container_item_id',
+            'contained_item_id',
+        )
+            ->withPivot([
+                'evidence_event_id',
+                'created_by',
+                'quantity',
+                'unit',
+                'position',
+                'observed_at',
+                'removed_at',
+            ])
+            ->withTimestamps()
+            ->wherePivotNull('removed_at');
+    }
+
+    public function containers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            self::class,
+            'item_containments',
+            'contained_item_id',
+            'container_item_id',
+        )
+            ->withPivot([
+                'evidence_event_id',
+                'created_by',
+                'quantity',
+                'unit',
+                'position',
+                'observed_at',
+                'removed_at',
+            ])
+            ->withTimestamps()
+            ->wherePivotNull('removed_at');
     }
 
     public function featuredEvent(): BelongsTo

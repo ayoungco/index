@@ -5,12 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LabelSheetController;
 use App\Http\Controllers\MessageController;
-use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ProtectedMediaController;
-use App\Http\Controllers\RelationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SiteSettingsController;
-use App\Http\Controllers\ThingController;
 use App\Http\Controllers\WikidataThingController;
 use App\Http\Controllers\WikidataTypeController;
 use Illuminate\Support\Facades\Route;
@@ -23,7 +20,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::middleware(['auth0.authenticate'])->prefix('wd')->name('wikidata.')->group(function () {
+Route::prefix('wd')->name('wikidata.')->group(function () {
     Route::get('/item/{qid}', [WikidataThingController::class, 'show'])
         ->where('qid', 'Q[0-9]+')
         ->name('item.show');
@@ -52,9 +49,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/site', [SiteSettingsController::class, 'edit'])->name('settings.site');
     Route::put('settings/site', [SiteSettingsController::class, 'update'])->name('settings.site.update');
 
-    Route::resource('things', ThingController::class)->only(['index']);
-    Route::resource('properties', PropertyController::class)->only(['index']);
-    Route::resource('relations', RelationController::class)->only(['index']);
     Route::resource('messages', MessageController::class)->only(['index']);
 
     Route::post('items/from-photo', [ItemController::class, 'storeFromPhoto'])
@@ -69,7 +63,7 @@ require __DIR__.'/auth.php';
 
 Route::get('media/{path}', [ProtectedMediaController::class, 'show'])
     ->where('path', '.*')
-    ->middleware(['auth0.authenticate'])
+    ->middleware(['auth0.authenticate.optional'])
     ->name('media.show');
 
 Route::middleware(['auth'])->group(function () {
@@ -83,6 +77,11 @@ Route::post('/{uuid}/initialize', [ItemController::class, 'initialize'])
     ->whereUuid('uuid')
     ->middleware(['auth0.authenticate', 'auth0.verified'])
     ->name('items.initialize');
+
+Route::patch('/{uuid}/visibility', [ItemController::class, 'updateVisibility'])
+    ->whereUuid('uuid')
+    ->middleware(['auth0.authenticate', 'auth0.verified'])
+    ->name('items.visibility.update');
 
 Route::post('/{uuid}/events', [ItemController::class, 'addPhoto'])
     ->whereUuid('uuid')
@@ -109,20 +108,15 @@ Route::get('/{namespace}/{slug}', [ItemController::class, 'showBySemantic'])
         'namespace' => '^(?!auth$|dashboard$|settings$|things$|properties$|relations$|messages$|wd$)[A-Za-z][A-Za-z0-9-]*$',
         'slug' => '[A-Za-z0-9_\-\._~%]+',
     ])
-    ->middleware(['auth0.authenticate'])
+    ->middleware(['auth0.authenticate.optional'])
     ->name('items.semantic.show');
 
 Route::get('/{identifier}', [ItemController::class, 'showByIdentifier'])
     ->where('identifier', '[A-Za-z][A-Za-z0-9_]*_[A-Za-z0-9_]+')
-    ->middleware(['auth0.authenticate'])
+    ->middleware(['auth0.authenticate.optional'])
     ->name('items.identifier.show');
-
-Route::get('/{slug}', [ThingController::class, 'showBySlug'])
-    ->where('slug', '^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$)(?!dashboard$|settings$|things$|properties$|relations$|messages$)[A-Za-z0-9\-\._~%]+$')
-    ->middleware(['auth0.authenticate'])
-    ->name('things.show-by-slug');
 
 Route::get('/{uuid}', [ItemController::class, 'show'])
     ->whereUuid('uuid')
-    ->middleware(['auth0.authenticate'])
+    ->middleware(['auth0.authenticate.optional'])
     ->name('items.show');
