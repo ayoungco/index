@@ -16,11 +16,70 @@ beforeEach(function () {
     installApplication();
 });
 
-test('guests are redirected to Auth0 before viewing an item', function () {
-    $uuid = (string) Str::uuid();
-    $response = $this->get('/'.$uuid);
+test('guests can view a public object without signing in', function () {
+    $item = Item::factory()->create([
+        'name' => 'Public display case',
+        'is_public' => true,
+    ]);
 
-    $response->assertRedirect(route('login'));
+    $response = $this->get('/'.$item->uuid);
+
+    $response->assertOk();
+    $response->assertSee('Public display case');
+    $response->assertSee('Public view');
+    $response->assertSee('Log in to add updates');
+});
+
+test('guests are prompted to sign in before viewing a private object', function () {
+    $item = Item::factory()->create(['is_public' => false]);
+
+    $response = $this->get('/'.$item->uuid);
+
+    $response->assertOk();
+    $response->assertSee('Sign in to view this record');
+    $response->assertDontSee($item->name);
+});
+
+test('verified operators can publish or privatize an object', function () {
+    $item = Item::factory()->create(['is_public' => true]);
+    $this->actingAs($item->creator, 'auth0-session');
+
+    $response = $this->patch(route('items.visibility.update', ['uuid' => $item->uuid]), [
+        'is_public' => false,
+    ]);
+
+    $response->assertRedirect(route('items.show', ['uuid' => $item->uuid]));
+    expect($item->refresh()->isPublic())->toBeFalse();
+
+    $this->get(route('items.show', ['uuid' => $item->uuid]))
+        ->assertSee('Visibility:')
+        ->assertSee('Private');
+});
+
+test('public object media is readable while private object media is not', function () {
+    Storage::fake('uploads');
+
+    $public = Item::factory()->create(['is_public' => true]);
+    $publicPath = 'items/'.$public->uuid.'/'.(string) Str::uuid().'.jpg';
+    Storage::disk('uploads')->put($publicPath, 'public-photo');
+    $public->events()->create([
+        'user_id' => $public->user_id,
+        'image_path' => $publicPath,
+        'is_qr_verified' => false,
+    ]);
+
+    $this->get(route('media.show', ['path' => $publicPath]))->assertOk();
+
+    $private = Item::factory()->create(['is_public' => false]);
+    $privatePath = 'items/'.$private->uuid.'/'.(string) Str::uuid().'.jpg';
+    Storage::disk('uploads')->put($privatePath, 'private-photo');
+    $private->events()->create([
+        'user_id' => $private->user_id,
+        'image_path' => $privatePath,
+        'is_qr_verified' => false,
+    ]);
+
+    $this->get(route('media.show', ['path' => $privatePath]))->assertNotFound();
 });
 
 test('the scanned object claim flow exposes optional Wikidata concept search', function () {
@@ -80,6 +139,11 @@ test('authenticated users see timeline images behind an on-demand disclosure', f
     $response->assertSee('Timeline');
     $response->assertSee('Shelf check complete.');
     $response->assertSee('Show image');
+    $response->assertSee('Manage record');
+    $response->assertSee('Record scan location');
+    $response->assertSee('Add a note');
+    $response->assertDontSee('Set as featured photo');
+    $response->assertDontSee('Tags');
     $response->assertSee('data-src="'.route('media.show', ['path' => 'items/'.$item->uuid.'/photo.jpg']).'"', false);
     expect(preg_match('/<details[^>]*data-timeline-image.*?<img\s+src=/s', $response->getContent()))->toBe(0);
     $response->assertSee('Latest image for '.$item->name);

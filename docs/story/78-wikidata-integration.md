@@ -13,7 +13,7 @@ The ordered backlog belongs in [the roadmap](../roadmap.md).
 | `app/Http/Controllers/WikidataThingController.php` — entity show page | ✅ built |
 | `app/Http/Controllers/WikidataTypeController.php` — type browser | ✅ built |
 | `config/services.php` — service config | ✅ built |
-| Routes `/wd/item/{qid}` and `/wd/type/{type}` | ✅ wired and Auth0-protected |
+| Routes `/wd/item/{qid}` and `/wd/type/{type}` | ✅ wired as public read-only views |
 | `database/wikidata-neo4j-importer/` — dump import pipeline | ✅ exists |
 | `wikidata_qid` on `Item` model | ✅ built |
 | `wikidata_entities` local cache table | ❌ not yet |

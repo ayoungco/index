@@ -16,17 +16,21 @@ Work from top to bottom unless direct operator feedback changes the order.
 
 ## Then: operational structure
 
-1. Audit and retire the legacy `Thing` workflow once all useful behavior lives
-   on `Item`.
-2. Add local Classes only when an installation needs a vocabulary that Wikidata
+1. Keep the retired legacy `Thing` workflow out of the active object path.
+2. Use `Item.operational_role` for local warehouse roles such as product,
+   holding unit, transportation unit, and location/bay.
+3. Use `item_containments` for evidence-backed HU contents and nested units.
+4. Add local Classes only when an installation needs a vocabulary that Wikidata
    cannot supply. Keep them separate from physical items.
-3. Add explicit containment, ownership, and provenance relationships after the
-   item and class workflows are proven.
-4. Use scan location data to test whether Locations, rooms, and containers need
-   first-class records rather than more free text.
 
 ## Later: validate before building
 
+- HU/TU load and unload transactions, bay assignments, and inventory balances.
+- Quantity/unit validation, lot/serial tracking, and cycle counts.
+- Wikidata search-as-you-type and cached type selection during item claiming.
+- A dedicated containment editor and crate “contents” summary on item pages.
+- Manual featured-photo selection and timeline tag editing are retained in the
+  backend but intentionally hidden from the compact item screen for now.
 - OCR/serial-number intake.
 - Configurable resources and class-specific fields.
 - Federation, graph storage, and external authority namespaces.

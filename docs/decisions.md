@@ -5,10 +5,12 @@
 UUIDs identify physical instances and remain stable on labels. Slugs, namespaces,
 and QIDs are secondary references.
 
-## Auth0 protects records and media
+## Public records, protected operations
 
-The product is private by default. There is no anonymous item page or public
-upload URL.
+Read routes use optional Auth0 authentication. Public objects can be viewed by
+anyone, while private objects and operator features require a signed-in user.
+Media follows the object visibility: public object media is cacheable and public;
+private object media stays behind the authenticated media route.
 
 ## Wikidata enriches; it does not own local identity
 
