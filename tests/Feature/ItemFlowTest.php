@@ -82,6 +82,45 @@ test('public object media is readable while private object media is not', functi
     $this->get(route('media.show', ['path' => $privatePath]))->assertNotFound();
 });
 
+test('the scanned object claim flow exposes optional Wikidata concept search', function () {
+    $user = User::factory()->create();
+    $uuid = (string) Str::uuid();
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->get('/'.$uuid);
+
+    $response->assertOk();
+    $response->assertSee('Classify with Wikidata');
+    $response->assertSee('data-wikidata-picker', false);
+    $response->assertSee(route('wikidata.search'), false);
+    $response->assertSee('name="wikidata_qid"', false);
+});
+
+test('verified users can register a scanned object with a Wikidata concept', function () {
+    Storage::fake('uploads');
+
+    $user = User::factory()->create();
+    $uuid = (string) Str::uuid();
+
+    $this->mock(ImageCompressionService::class, function ($mock) {
+        $mock->shouldReceive('compressAndStore')
+            ->once()
+            ->andReturn('items/example/photo.jpg');
+    });
+
+    $this->actingAs($user, 'auth0-session');
+
+    $response = $this->post(route('items.initialize', ['uuid' => $uuid]), [
+        'name' => 'Oxygen tank',
+        'wikidata_qid' => 'Q629',
+        'photo' => UploadedFile::fake()->image('oxygen-tank.jpg'),
+    ]);
+
+    $response->assertRedirect(route('items.show', ['uuid' => $uuid]));
+    expect(Item::query()->where('uuid', $uuid)->value('wikidata_qid'))->toBe('Q629');
+});
+
 test('authenticated users see timeline images behind an on-demand disclosure', function () {
     $item = Item::factory()->create();
     $this->actingAs($item->creator, 'auth0-session');

@@ -21,6 +21,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::prefix('wd')->name('wikidata.')->group(function () {
+    Route::get('/search', [WikidataThingController::class, 'search'])
+        ->name('search');
+
     Route::get('/item/{qid}', [WikidataThingController::class, 'show'])
         ->where('qid', 'Q[0-9]+')
         ->name('item.show');

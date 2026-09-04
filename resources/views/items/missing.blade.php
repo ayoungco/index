@@ -66,6 +66,32 @@
                             >
                         </label>
 
+                        <div class="app-form__field wikidata-picker" data-wikidata-picker data-search-url="{{ route('wikidata.search') }}">
+                            <label for="wikidata-search" class="app-form__label">
+                                Classify with Wikidata <span class="app-form__optional">Optional</span>
+                            </label>
+                            <input
+                                id="wikidata-search"
+                                type="search"
+                                class="app-field"
+                                autocomplete="off"
+                                placeholder="Search for a concept, such as oxygen or drill"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="wikidata-results"
+                                aria-expanded="false"
+                            >
+                            <input type="hidden" name="wikidata_qid" value="{{ old('wikidata_qid') }}" data-wikidata-qid>
+                            <div id="wikidata-results" class="wikidata-picker__results" role="listbox" hidden data-wikidata-results></div>
+                            <p class="app-form__hint" data-wikidata-selection>
+                                @if (old('wikidata_qid'))
+                                    Selected Wikidata concept: {{ old('wikidata_qid') }}
+                                @else
+                                    Choose a result to attach its Wikidata concept to this object.
+                                @endif
+                            </p>
+                        </div>
+
                         <label class="app-form__field">
                             <span class="app-form__label">Note <span class="app-form__optional">Optional</span></span>
                             <textarea
@@ -125,6 +151,9 @@
                     @error('name')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
+                    @error('wikidata_qid')
+                        <p class="app-notice text-xs">{{ $message }}</p>
+                    @enderror
                     @error('comment')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
@@ -161,6 +190,7 @@
                 const trigger = document.getElementById('init-photo-trigger');
                 const label   = document.getElementById('{{ $nameId }}');
                 const fields  = document.getElementById('init-fields');
+                const wikidataPicker = document.querySelector('[data-wikidata-picker]');
 
                 trigger?.addEventListener('click', () => picker?.click());
 
@@ -172,6 +202,146 @@
                     trigger.classList.add('is-uploading');
                     fields?.classList.remove('hidden');
                     fields?.querySelector('input[name="name"]')?.focus();
+                });
+
+                if (! wikidataPicker) return;
+
+                const searchInput = wikidataPicker.querySelector('[role="combobox"]');
+                const qidInput = wikidataPicker.querySelector('[data-wikidata-qid]');
+                const results = wikidataPicker.querySelector('[data-wikidata-results]');
+                const selection = wikidataPicker.querySelector('[data-wikidata-selection]');
+                let timer = null;
+                let controller = null;
+                let requestNumber = 0;
+
+                const closeResults = () => {
+                    results.replaceChildren();
+                    results.hidden = true;
+                    searchInput.setAttribute('aria-expanded', 'false');
+                };
+
+                const showMessage = (message) => {
+                    const node = document.createElement('p');
+                    node.className = 'app-muted px-2 py-2 text-xs';
+                    node.textContent = message;
+                    results.replaceChildren(node);
+                    results.hidden = false;
+                    searchInput.setAttribute('aria-expanded', 'true');
+                };
+
+                const selectResult = (result) => {
+                    qidInput.value = result.id;
+                    searchInput.value = result.label;
+                    selection.textContent = `Selected: ${result.label} (${result.id})`;
+                    closeResults();
+                };
+
+                const renderResults = (matches) => {
+                    results.replaceChildren();
+
+                    if (matches.length === 0) {
+                        showMessage('No concepts found.');
+                        return;
+                    }
+
+                    matches.forEach((result) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'app-btn wikidata-picker__result';
+                        button.setAttribute('role', 'option');
+
+                        const name = document.createElement('span');
+                        name.className = 'wikidata-picker__result-label';
+                        name.textContent = result.label;
+                        button.append(name);
+
+                        const meta = document.createElement('span');
+                        meta.className = 'wikidata-picker__result-meta';
+                        meta.textContent = [result.id, result.description].filter(Boolean).join(' · ');
+                        button.append(meta);
+
+                        button.addEventListener('click', () => selectResult(result));
+                        results.append(button);
+                    });
+
+                    results.hidden = false;
+                    searchInput.setAttribute('aria-expanded', 'true');
+                };
+
+                const requestSearch = () => {
+                    const query = searchInput.value.trim();
+                    qidInput.value = '';
+                    selection.textContent = 'Choose a result to attach its Wikidata concept to this object.';
+                    window.clearTimeout(timer);
+                    controller?.abort();
+
+                    if (query.length < 2) {
+                        closeResults();
+                        return;
+                    }
+
+                    timer = window.setTimeout(async () => {
+                        const currentRequest = ++requestNumber;
+                        controller = new AbortController();
+                        showMessage('Searching…');
+
+                        try {
+                            const url = new URL(wikidataPicker.dataset.searchUrl, window.location.origin);
+                            url.searchParams.set('q', query);
+                            const response = await fetch(url, {
+                                headers: { Accept: 'application/json' },
+                                signal: controller.signal,
+                            });
+
+                            if (! response.ok) throw new Error('Search failed.');
+
+                            const payload = await response.json();
+                            if (currentRequest === requestNumber) renderResults(payload.results ?? []);
+                        } catch (error) {
+                            if (error.name !== 'AbortError' && currentRequest === requestNumber) {
+                                showMessage('Search unavailable. You can continue without a concept.');
+                            }
+                        }
+                    }, 180);
+                };
+
+                searchInput.addEventListener('input', requestSearch);
+                searchInput.addEventListener('keydown', (event) => {
+                    const options = Array.from(results.querySelectorAll('button[role="option"]'));
+
+                    if (event.key === 'ArrowDown' && options.length > 0) {
+                        event.preventDefault();
+                        options[0].focus();
+                    }
+
+                    if (event.key === 'Escape') {
+                        closeResults();
+                    }
+                });
+
+                results.addEventListener('keydown', (event) => {
+                    const options = Array.from(results.querySelectorAll('button[role="option"]'));
+                    const activeIndex = options.indexOf(document.activeElement);
+
+                    if (event.key === 'ArrowDown' && activeIndex < options.length - 1) {
+                        event.preventDefault();
+                        options[activeIndex + 1].focus();
+                    }
+
+                    if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        (options[activeIndex - 1] ?? searchInput).focus();
+                    }
+
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        closeResults();
+                        searchInput.focus();
+                    }
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (! wikidataPicker.contains(event.target)) closeResults();
                 });
             })();
         </script>

@@ -3,10 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Services\Wikidata;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WikidataThingController extends Controller
 {
     public function __construct(private Wikidata $wd) {}
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($query) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $results = collect($this->wd->search($query, (string) $request->query('lang', 'en'), 8))
+            ->map(function (array $result): ?array {
+                $qid = $result['id'] ?? null;
+
+                if (! is_string($qid) || ! preg_match('/^Q[1-9][0-9]*$/', $qid)) {
+                    return null;
+                }
+
+                return [
+                    'id' => $qid,
+                    'label' => $result['label'] ?? $qid,
+                    'description' => $result['description'] ?? null,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json(['results' => $results]);
+    }
 
     public function show(string $qid)
     {
@@ -30,4 +60,3 @@ class WikidataThingController extends Controller
         ]);
     }
 }
-
