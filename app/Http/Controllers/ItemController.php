@@ -128,7 +128,7 @@ class ItemController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
-            'operational_role' => [$this->operationalRoleRule()],
+            'operational_role' => $this->operationalRoleRule(),
             'photo' => $this->photoRules(),
             'comment' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -173,7 +173,7 @@ class ItemController extends Controller
                 'photo' => $this->photoRules(),
                 'name' => ['nullable', 'string', 'max:255'],
                 'wikidata_qid' => ['nullable', 'string', 'regex:/^Q[1-9][0-9]*$/'],
-                'operational_role' => [$this->operationalRoleRule()],
+                'operational_role' => $this->operationalRoleRule(),
             ]);
 
             $uuid = (string) Str::uuid();
@@ -414,9 +414,9 @@ class ItemController extends Controller
         ];
     }
 
-    private function operationalRoleRule(): string
+    private function operationalRoleRule(): array
     {
-        return 'nullable|in:product,holding_unit,transportation_unit,location,asset,other';
+        return ['nullable', 'in:product,holding_unit,transportation_unit,location,asset,other'];
     }
 
     private function recordAccess(Request $request, Item $item): void
