@@ -3,6 +3,17 @@
 This is an ordered set of bets, not a promise to build every idea in the archive.
 Work from top to bottom unless direct operator feedback changes the order.
 
+## Proposed parallel experiment: business-card QR
+
+Explore a fast public experience at the existing printed business-card URL:
+a physical hyperlink, collective card passport, and invitation to pass it on.
+This is separate from private object access. The URL and launch scope remain
+to be confirmed. See [Product direction and card experiment](direction.md).
+
+That direction also proposes TUI/BIOS-inspired controls, object-level tags,
+and simple key/value attributes. Prototype the interaction before committing
+to a SPA framework; these capabilities are not yet implemented.
+
 ## Next: strengthen the object loop
 
 1. Wikidata concept search during claim/creation, with a local entity cache.

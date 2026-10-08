@@ -10,6 +10,7 @@ the next experiment.
 | [Architecture](design.md) | Current application structure and technical boundaries. |
 | [Operations](operations.md) | Auth, uploads, privacy, camera, location, and delivery practices. |
 | [Roadmap](roadmap.md) | Deliberately sequenced product and architecture bets. |
+| [Product direction and card experiment](direction.md) | TUI/BIOS interaction inspiration, flexible object data, and the public business-card QR exploration. |
 | [Decision log](decisions.md) | Decisions that constrain future work. |
 | [Wikidata MVP](story/78-wikidata-integration.md) | The narrower integration backlog. |
 
