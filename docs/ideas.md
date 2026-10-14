@@ -1,0 +1,1 @@
+- a live AR app that automatically loads a tooltip when a QR is recognized for ios first
