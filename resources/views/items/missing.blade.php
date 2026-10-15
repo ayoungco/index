@@ -123,17 +123,6 @@
                                     </select>
                                 </label>
 
-                                <label class="app-form__field">
-                                    <span class="app-form__label">Wikidata QID <span class="app-form__optional">Optional</span></span>
-                                    <input
-                                        type="text"
-                                        name="wikidata_qid"
-                                        value="{{ old('wikidata_qid') }}"
-                                        maxlength="32"
-                                        class="app-field"
-                                        placeholder="Q..."
-                                    >
-                                </label>
                             </div>
                         </details>
 
@@ -158,9 +147,6 @@
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     @error('operational_role')
-                        <p class="app-notice text-xs">{{ $message }}</p>
-                    @enderror
-                    @error('wikidata_qid')
                         <p class="app-notice text-xs">{{ $message }}</p>
                     @enderror
                     <noscript>

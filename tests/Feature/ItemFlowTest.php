@@ -95,6 +95,7 @@ test('the scanned object claim flow exposes optional Wikidata concept search', f
     $response->assertSee('data-wikidata-picker', false);
     $response->assertSee(route('wikidata.search'), false);
     $response->assertSee('name="wikidata_qid"', false);
+    expect(substr_count($response->getContent(), 'name="wikidata_qid"'))->toBe(1);
 });
 
 test('verified users can register a scanned object with a Wikidata concept', function () {
